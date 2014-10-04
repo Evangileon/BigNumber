@@ -6,17 +6,16 @@ import java.util.LinkedList;
 
 public class BigNumber {
 
-	int base;
+	private final int base;
 	LinkedList<Integer> digitList;
 
 	public BigNumber() {
-		base = 10;
-		digitList = new LinkedList<Integer>();
+		this(10);
 	}
 
 	public BigNumber(int base) {
-		this();
 		this.base = base;
+        digitList = new LinkedList<Integer>();
 	}
 
 	public void printList() {
@@ -59,6 +58,12 @@ public class BigNumber {
 		char[] number = numStr.toCharArray();
 		int remnant = 0;
 
+        if(number.length < digitMaxLength) {
+            remnant = charArrayToInt(number, 0, number.length);
+            buffer.append("0");
+            return remnant;
+        }
+
 		// every iteration extract last digitMaxLength chars of number string.
 		// begin at most significant digit
 		for (int beginDigit = 0, endDigit = beginDigit + digitMaxLength; endDigit <= number.length;) {
@@ -90,50 +95,26 @@ public class BigNumber {
 	}
 	
 	public void strToNum(String str) {
-
-		String digitMaxStr = String.valueOf(base);
-		int digitMaxLength = digitMaxStr.length();
-
-		char[] number = str.toCharArray();
 		int remnant = 0;
+        String num = str;
 
-		// every iteration extract last digitMaxLength chars of number string.
-		// begin at most significant digit
-		for (int beginDigit = 0, endDigit = beginDigit + digitMaxLength; endDigit <= number.length;) {
-
-			int tempInt = charArrayToInt(number, beginDigit, endDigit);
-			int digit = tempInt / base;
-			remnant = tempInt % base;
-
-			// add to linked list
-			digitList.addFirst(digit);
-
-			if (remnant == 0) {
-				beginDigit += (endDigit - beginDigit);
-				endDigit += (digitMaxLength - 1);
-				continue;
-			}
-
-			// replace the last digits with remnant
-			char[] remnantChars = String.valueOf(remnant).toCharArray();
-			// aligned with number (char array)
-			for (int i = 0; i < remnantChars.length; i++) {
-				number[beginDigit + (endDigit - beginDigit) - remnantChars.length + i] = remnantChars[i];
-			}
-
-			beginDigit += ((endDigit - beginDigit) - remnantChars.length);
-			endDigit += (digitMaxLength - 1); 
-		}
-		digitList.addFirst(remnant);
+        while(!num.equals("0")) {
+            StringBuffer buffer = new StringBuffer();
+            remnant = divideByInt(num, this.base, buffer);
+            num = buffer.toString();
+            digitList.add(remnant);
+        }
 	}
 
 	public static void main(String[] args) {
 		// String str =
 		// "90569784495866770974195656280275310090138980613960953881501965823101";
-		String str = "972";
+		String str = "769";
 		BigNumber big = new BigNumber(13);
 		big.strToNum(str);
 		big.printList();
-	}
-
+        StringBuffer buffer = new StringBuffer();
+        System.out.println(big.divideByInt(str, 13, buffer));
+        System.out.println(buffer.toString());
+    }
 }
