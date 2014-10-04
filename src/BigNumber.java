@@ -26,9 +26,9 @@ public class BigNumber {
 	/**
 	 * Convert char array represented decimal to int
 	 * 
-	 * @param array
-	 * @param start
-	 * @param end
+	 * @param array input char array
+	 * @param start index inclusive
+	 * @param end index exclusive
 	 * @return integer
 	 * @throws NumberFormatException
 	 */
