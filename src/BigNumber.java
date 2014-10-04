@@ -64,6 +64,7 @@ public class BigNumber {
             return remnant;
         }
 
+        boolean firstzero = true;
 		// every iteration extract last digitMaxLength chars of number string.
 		// begin at most significant digit
 		for (int beginDigit = 0, endDigit = beginDigit + digitMaxLength; endDigit <= number.length;) {
@@ -73,7 +74,12 @@ public class BigNumber {
 			remnant = tempInt % intNum;
 
 			// add to linked list
-			buffer.append(digit);
+            if(digit != 0) {
+                firstzero = false;
+            }
+            if(digit != 0 || !firstzero) {
+                buffer.append(digit);
+            }
 
 			if (remnant == 0) {
 				beginDigit += (endDigit - beginDigit);
@@ -95,26 +101,27 @@ public class BigNumber {
 	}
 	
 	public void strToNum(String str) {
-		int remnant = 0;
+		int remnant;
         String num = str;
 
         while(!num.equals("0")) {
             StringBuffer buffer = new StringBuffer();
             remnant = divideByInt(num, this.base, buffer);
             num = buffer.toString();
+            //System.out.println(num);
             digitList.add(remnant);
         }
 	}
 
 	public static void main(String[] args) {
-		// String str =
-		// "90569784495866770974195656280275310090138980613960953881501965823101";
-		String str = "769";
+		String str = "90569784495866770974195656280275310090138980613960953881501965823101";
+		//String str = "769";
 		BigNumber big = new BigNumber(13);
 		big.strToNum(str);
 		big.printList();
         StringBuffer buffer = new StringBuffer();
-        System.out.println(big.divideByInt(str, 13, buffer));
+        System.out.println(big.divideByInt("0", 13, buffer));
         System.out.println(buffer.toString());
+        System.out.println("" + Integer.MAX_VALUE);
     }
 }
