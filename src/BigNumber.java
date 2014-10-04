@@ -313,6 +313,10 @@ public class BigNumber {
         return result;
     }
 
+    /**
+     * Append a digit to this big number, this is for only internal operation
+     * @param dight to be appended
+     */
     private void addDigit(int dight) {
         this.digitList.add(Integer.valueOf(dight));
     }
@@ -395,15 +399,16 @@ public class BigNumber {
                 digit2 = 0;
             }
 
-            if (digit1 < (digit2 + borrow)) {
+            int temp = digit1 - (digit2 + borrow);
+
+            if (temp < 0) {
                 // then digit borrow 1 from higher digit of this big number
                 borrow = 1;
-                digit1 = digit1 + this.base;
+                temp = temp + this.base;
             } else {
                 borrow = 0;
             }
 
-            int temp = digit1 - (digit2 + borrow);
             result.addDigit(temp);
         }
 
@@ -424,10 +429,10 @@ public class BigNumber {
     }
 
     public static void main(String[] args) {
-        //String str = "90569784495866770974195656280275310090138980613960953881501965823101";
-        String str = "769";
+        String str = "90569784495866770974195656280275310090138980613960953881501965823101";
+        //String str = "769";
         BigNumber big = new BigNumber(13);
-        String str2 = "152";
+        String str2 = "182";
         BigNumber big2 = new BigNumber(13);
         big.strToNum(str);
         big2.strToNum(str2);
@@ -441,6 +446,8 @@ public class BigNumber {
         //System.out.println("" + Integer.MAX_VALUE);
         //System.out.println(big.multiplyByInt("1232", 51));
         System.out.println(big.add(big2).numToStr());
-        System.out.println(big.substract(big2).numToStr());
+        BigNumber result = big.substract(big2);
+        result.printList();
+        System.out.println(result.numToStr());
     }
 }
