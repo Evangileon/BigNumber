@@ -24,7 +24,15 @@ public class BigNumber {
 		System.out.println(digitList);
 	}
 
-	/**
+    public int getBase() {
+        return base;
+    }
+
+    public LinkedList<Integer> getDigitList() {
+        return digitList;
+    }
+
+    /**
 	 * Convert char array represented decimal to int
 	 * 
 	 * @param array input char array
@@ -285,17 +293,75 @@ public class BigNumber {
         return result;
     }
 
+    private void addDigit(int dight) {
+        this.digitList.add(Integer.valueOf(dight));
+    }
+
+    /**
+     * Add this with a big number, is their base not the same, throw a exception
+     * @param other right operand
+     * @return the result of addition
+     */
+    public BigNumber add(BigNumber other) {
+        if(this.base != other.getBase()) {
+            throw new NumberFormatException("Base not the same");
+        }
+
+        BigNumber result = new BigNumber(this.base);
+        int carry = 0;
+        Iterator<Integer> itor1 = this.getDigitList().iterator();
+        Iterator<Integer> itor2 = other.getDigitList().iterator();
+        int digit1, digit2;
+
+        while (itor1.hasNext() || itor2.hasNext()) {
+            if(itor1.hasNext()) {
+                // If itor exceed the range, let it be zero
+                digit1 = itor1.next();
+            } else {
+                digit1 = 0;
+            }
+            if (itor2.hasNext()) {
+                digit2 = itor2.next();
+            } else {
+                digit2 = 0;
+            }
+
+            // if base is less than 2 ^ 15, the operation will never overflow
+            int temp = digit1 + digit2 + carry;
+            if(temp > (this.base - 1)) {
+                carry = 1;
+                temp = temp % this.base;
+            } else {
+                carry = 0;
+            }
+
+            result.addDigit(temp);
+        }
+
+        if(carry == 1) {
+            // last carry
+            result.addDigit(1);
+        }
+
+        return result;
+    }
+
 	public static void main(String[] args) {
-		String str = "90569784495866770974195656280275310090138980613960953881501965823101";
-		//String str = "769";
+		//String str = "90569784495866770974195656280275310090138980613960953881501965823101";
+		String str = "769";
 		BigNumber big = new BigNumber(13);
+        String str2 = "152";
+        BigNumber big2 = new BigNumber(13);
 		big.strToNum(str);
+        big2.strToNum(str2);
 		big.printList();
+        big2.printList();
         System.out.println(big.numToStr());
         StringBuffer buffer = new StringBuffer();
         System.out.println(big.divideByInt("0", 13, buffer));
         System.out.println(buffer.toString());
         System.out.println("" + Integer.MAX_VALUE);
         System.out.println(big.multiplyByInt("1232", 51));
+        System.out.println(big.add(big2).numToStr());
     }
 }
