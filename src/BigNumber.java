@@ -11,6 +11,13 @@ public class BigNumber {
     private final int base;
     LinkedList<Integer> digitList;
 
+    // The larger the better under restriction that the square of base will not overflow
+    public static final int optimalBase = 0x7FFF;
+
+    public static BigNumber BigNumberWithOptimalBase() {
+        return new BigNumber(optimalBase);
+    }
+
     public BigNumber() {
         this(10);
     }
@@ -79,7 +86,7 @@ public class BigNumber {
             return remnant;
         }
 
-        if(number.length == digitMaxLength) {
+        if (number.length == digitMaxLength) {
             // It the length equal, then compare the value
             // after arithmetic operation, return append digit and return remnant immediately
             // this can reduce running time
@@ -315,6 +322,7 @@ public class BigNumber {
 
     /**
      * Append a digit to this big number, this is for only internal operation
+     *
      * @param dight to be appended
      */
     private void addDigit(int dight) {
@@ -412,28 +420,15 @@ public class BigNumber {
             result.addDigit(temp);
         }
 
-        /*
-        if (borrow == 1) {
-            // most significant digit of iterator 2 may affect
-            if (!itor1.hasNext()) {
-                throw new NumberFormatException("this is less than other, " +
-                        "that returns negative number, " +
-                        "which is not required in this project");
-            }
-
-            int lastDigit = itor1.next();
-            //result.addDigit(la);
-        }*/
-
         return result;
     }
 
     public static void main(String[] args) {
         String str = "90569784495866770974195656280275310090138980613960953881501965823101";
         //String str = "769";
-        BigNumber big = new BigNumber(13);
+        BigNumber big = BigNumber.BigNumberWithOptimalBase();
         String str2 = "182";
-        BigNumber big2 = new BigNumber(13);
+        BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
         big.strToNum(str);
         big2.strToNum(str2);
         big.printList();
