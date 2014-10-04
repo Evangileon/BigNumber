@@ -132,7 +132,7 @@ public class BigNumber {
 
             // move indices
             beginDigit += ((endDigit - beginDigit) - remnantChars.length);
-            endDigit += (digitMaxLength - 1);
+            endDigit += 1;
         }
         return remnant;
     }
@@ -426,9 +426,11 @@ public class BigNumber {
     public static void main(String[] args) {
         String str = "90569784495866770974195656280275310090138980613960953881501965823101";
         //String str = "769";
-        BigNumber big = BigNumber.BigNumberWithOptimalBase();
+        //BigNumber big = BigNumber.BigNumberWithOptimalBase();
+        BigNumber big = new BigNumber(13);
         String str2 = "182";
-        BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
+        //BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
+        BigNumber big2 = new BigNumber(13);
         big.strToNum(str);
         big2.strToNum(str2);
         big.printList();
