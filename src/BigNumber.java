@@ -23,7 +23,7 @@ public class BigNumber {
     }
 
     public BigNumber() {
-        this(10);
+        this(specifiedBase);
     }
 
     public BigNumber(int base) {
@@ -45,6 +45,18 @@ public class BigNumber {
 
     public LinkedList<Integer> getDigitList() {
         return digitList;
+    }
+
+    private void trimTopZeros() {
+        Iterator<Integer> itor = this.getDigitList().descendingIterator();
+
+        while (itor.hasNext()) {
+            if(itor.next() == 0) {
+                itor.remove();
+            } else {
+                return;
+            }
+        }
     }
 
     /**
@@ -452,6 +464,7 @@ public class BigNumber {
             }
         }
 
+        result.trimTopZeros();
         return result;
     }
 
@@ -552,6 +565,10 @@ public class BigNumber {
         return result;
     }
 
+    public boolean isZero() {
+        return this.getDigitList().isEmpty();
+    }
+
     public static void executeLoop() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         // store var names and their correspondent big number
@@ -562,10 +579,10 @@ public class BigNumber {
         exprTable.add("");
 
         // read expr from stdin
-        String line;
+        String lineExpr;
         try {
-            while((line = reader.readLine()) != null) {
-                String[] params = line.split(" ");
+            while((lineExpr = reader.readLine()) != null) {
+                String[] params = lineExpr.split(" ");
                 if(params.length != 2) {
                     System.out.println("Invalid input: wrong format");
                     return;
@@ -585,8 +602,9 @@ public class BigNumber {
         }
 
         // begin to handle expr
-        for (int i = 1; i < exprTable.size(); i++) {
-            String expr = exprTable.get(i);
+        int line = 1;
+        while (line < exprTable.size()) {
+            String expr = exprTable.get(line);
 
             // first handle ? jump
             if (expr.contains("?")) {
@@ -596,8 +614,86 @@ public class BigNumber {
                     return;
                 }
 
+                String var = jumpParams[0];
+                int lineNum = Integer.parseInt(jumpParams[1]);
 
+                if (!varMap.get(var).isZero()) {
+                    // if var value is not 0, then go to Line number
+                    line = lineNum;
+                } else {
+                    // else go to next line
+                    line++;
+                }
+                continue;
             }
+
+            // handle expr with or without = and except ?
+            String[] exprParams = expr.split("=");
+            int length = exprParams.length;
+            if (length == 1) {
+                // only var name, then print it
+                varMap.get(exprParams[0]).numToStr();
+            } else if (length == 2) {
+                String left = exprParams[0];
+                String right = exprParams[1];
+
+                if(right.charAt(0) <= '9' && right.charAt(0) >= '1') {
+                    // it's an assignment of number to var
+                    BigNumber big = new BigNumber();
+                    big.strToNum(right);
+                    varMap.put(left, big);
+                } else {
+                    // it's a arithmetic expression
+                    int k; // k point to the index of operator
+                    for (k = 0; k < right.length(); k++) {
+                        char token = right.charAt(k);
+                        if (token == '+' || token == '-' || token == '*' || token == '^') {
+                            break;
+                        }
+                    }
+
+                    // operator at last char or not contained in expr
+                    if (k == right.length() || k == right.length() - 1) {
+                        System.out.println("Invalid input: wrong arithmetic expression");
+                        return;
+                    }
+
+                    String leftOperand = right.substring(0, k);
+                    String rightOperand = right.substring(k + 1);
+
+                    BigNumber leftBigNumber = varMap.get(leftOperand);
+                    BigNumber rightBigNumber = varMap.get(rightOperand);
+
+                    if (leftBigNumber == null || rightBigNumber == null) {
+                        System.out.println("Invalid input: you have to initialize the variable before you use it");
+                        return;
+                    }
+
+                    switch (right.charAt(k)) {
+                        case '+':
+                            varMap.put(left, leftBigNumber.add(rightBigNumber));
+                            break;
+                        case '-':
+                            varMap.put(left, leftBigNumber.substract(rightBigNumber));
+                            break;
+                        case '*':
+                            varMap.put(left, leftBigNumber.multiply(rightBigNumber));
+                            break;
+                        case '^':
+                            varMap.put(left, leftBigNumber.power(rightBigNumber));
+                            break;
+                        default:
+                            System.out.println("Invalid input: unknown operator");
+                            return;
+                    }
+                }
+            } else {
+                System.out.println("Invalid input: unknown expression" + expr);
+                return;
+            }
+
+            // next line
+            line++;
         }
     }
 
