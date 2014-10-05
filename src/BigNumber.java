@@ -2,7 +2,11 @@
  * @author Jun Yu
  */
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -329,7 +333,7 @@ public class BigNumber {
      * @param dight to be appended
      */
     private void addDigit(int dight) {
-        if(dight <= 0) {
+        if(dight < 0) {
             return;
         }
         this.digitList.add(dight);
@@ -443,7 +447,9 @@ public class BigNumber {
                 borrow = 0;
             }
 
-            result.addDigit(temp);
+            if(itor1.hasNext()) {
+                result.addDigit(temp);
+            }
         }
 
         return result;
@@ -546,14 +552,73 @@ public class BigNumber {
         return result;
     }
 
+    public static void executeLoop() {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        // store var names and their correspondent big number
+        HashMap<String, BigNumber> varMap = new HashMap<String, BigNumber>();
+        // store line number and expr
+        ArrayList<String> exprTable = new ArrayList<String>();
+        // exprTable[0] unused
+        exprTable.add("");
+
+        // read expr from stdin
+        String line;
+        try {
+            while((line = reader.readLine()) != null) {
+                String[] params = line.split(" ");
+                if(params.length != 2) {
+                    System.out.println("Invalid input: wrong format");
+                    return;
+                }
+
+                int lineNum = Integer.parseInt(params[0]);
+                String expr = params[1];
+                // set expr table for jumping
+                if (exprTable.get(lineNum) == null) {
+                    exprTable.add(expr);
+                } else {
+                    exprTable.set(lineNum, expr);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // begin to handle expr
+        for (int i = 1; i < exprTable.size(); i++) {
+            String expr = exprTable.get(i);
+
+            // first handle ? jump
+            if (expr.contains("?")) {
+                String[] jumpParams = expr.split("\\?");
+                if(jumpParams.length != 2) {
+                    System.out.println("Invalid input: wrong jump");
+                    return;
+                }
+
+
+            }
+        }
+    }
+
+    public static int specifiedBase = optimalBase;
+
     public static void main(String[] args) {
-        String str = "90569784495866770974195656280275310090138980613960953881501965823101";
-        //String str = "769";
-        BigNumber big = BigNumber.BigNumberWithOptimalBase();
-        //BigNumber big = new BigNumber(13);
-        String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
-        BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
-        //BigNumber big2 = new BigNumber(13);
+        if(args.length > 0) {
+            specifiedBase = Integer.parseInt(args[0]);
+            System.out.println("Specified base = " + specifiedBase);
+        } else {
+            System.out.println("Default base = " + BigNumber.optimalBase);
+        }
+
+        //String str = "90569784495866770974195656280275310090138980613960953881501965823101";
+        String str = "769";
+        //BigNumber big = BigNumber.BigNumberWithOptimalBase();
+        BigNumber big = new BigNumber(13);
+        //String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
+        String str2 = "730";
+        //BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
+        BigNumber big2 = new BigNumber(13);
         big.strToNum(str);
         big2.strToNum(str2);
         big.printList();
@@ -565,11 +630,12 @@ public class BigNumber {
         //System.out.println(buffer.toString());
         //System.out.println("" + Integer.MAX_VALUE);
         //System.out.println(big.multiplyByInt("1232", 51));
-        System.out.println(big.add(big2).numToStr());
+        //System.out.println(big.add(big2).numToStr());
         BigNumber result = big.substract(big2);
         result.printList();
         System.out.println(result.numToStr());
-        System.out.println(big.multiply(13).numToStr());
-        System.out.println(big.multiply(big2).numToStr());
+        //System.out.println(big.multiply(13).numToStr());
+        //System.out.println(big.multiply(big2).numToStr());
+        //Math.pow(12, 22);
     }
 }
