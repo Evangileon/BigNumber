@@ -32,6 +32,11 @@ public class BigNumber {
         digitList = new LinkedList<Integer>();
     }
 
+    public BigNumber(BigNumber other) {
+        this(other.getBase());
+        this.getDigitList().addAll(other.getDigitList());
+    }
+
     public void printList() {
         System.out.println(digitList);
     }
@@ -48,7 +53,7 @@ public class BigNumber {
         Iterator<Integer> itor = this.getDigitList().descendingIterator();
 
         while (itor.hasNext()) {
-            if(itor.next() == 0) {
+            if (itor.next() == 0) {
                 itor.remove();
             } else {
                 return;
@@ -79,14 +84,26 @@ public class BigNumber {
     }
 
     /**
-     * BigNumber divided by a integer
+     * This big number divided by integer
+     *
+     * @param intNum delimiter
+     * @param buffer for output
+     * @return remnant
+     */
+    public int divideByInt(int intNum, StringBuffer buffer) {
+        String str = this.numToStr();
+        return strDivideByInt(str, intNum, buffer);
+    }
+
+    /**
+     * String representative big number divided by a integer
      *
      * @param numStr string representation of big number
      * @param intNum delimiter
      * @param buffer to store the string representation of the result
      * @return the remnant of the division
      */
-    public int divideByInt(String numStr, int intNum, StringBuffer buffer) {
+    public int strDivideByInt(String numStr, int intNum, StringBuffer buffer) {
         String digitMaxStr = String.valueOf(intNum);
         // The max length of chars that one iteration of division will affect
         int digitMaxLength = digitMaxStr.length();
@@ -134,7 +151,8 @@ public class BigNumber {
             }
 
             if (remnant == 0) {
-
+                // if remnant is 0, there is no need to replace chars in original char arrays
+                // just move a window which width is (digitMaxLength - 1) to right
                 beginDigit += (endDigit - beginDigit);
                 endDigit += (digitMaxLength - 1);
                 continue;
@@ -302,7 +320,7 @@ public class BigNumber {
         while (!num.equals("0")) {
             // If num = "0", means the result of division is 0, so the loop ends
             StringBuffer buffer = new StringBuffer();
-            remnant = divideByInt(num, this.base, buffer);
+            remnant = strDivideByInt(num, this.base, buffer);
             num = buffer.toString();
             //System.out.println(num);
             // remnant is the content of every node
@@ -342,7 +360,7 @@ public class BigNumber {
      * @param dight to be appended
      */
     private void addDigit(int dight) {
-        if(dight < 0) {
+        if (dight < 0) {
             return;
         }
         this.digitList.add(dight);
@@ -351,6 +369,7 @@ public class BigNumber {
     /**
      * Equivalent to multiply (base * numBase) to this,
      * that is to prepend numBase 0 digits into digitList
+     *
      * @param numBase the number of node prepend to list
      */
     private void shiftByBase(int numBase) {
@@ -415,6 +434,7 @@ public class BigNumber {
 
     /**
      * Subtract this to other big numbrt
+     *
      * @param other big number
      * @return the difference of two big numbers, if less than 0, return 0
      */
@@ -467,11 +487,12 @@ public class BigNumber {
 
     /**
      * This big number multiplied with a integer
+     *
      * @param other integer
      * @return big number product
      */
     public BigNumber multiply(int other) {
-        if(other < 0) {
+        if (other < 0) {
             return this;
         }
 
@@ -496,7 +517,7 @@ public class BigNumber {
         }
 
         // Don't forget the last carry
-        if(carry > 0) {
+        if (carry > 0) {
             result.addDigit(carry);
         }
 
@@ -505,6 +526,7 @@ public class BigNumber {
 
     /**
      * This big number multiplied with a big number
+     *
      * @param other big number
      * @return big number product
      */
@@ -520,7 +542,7 @@ public class BigNumber {
         int digit2;
 
         // To reduce running time, the right operand should be the one with less digit list
-        if(this.getDigitList().size() < other.getDigitList().size()) {
+        if (this.getDigitList().size() < other.getDigitList().size()) {
             BigNumber swap = left;
             left = right;
             right = swap;
@@ -554,8 +576,21 @@ public class BigNumber {
         }
 
         BigNumber result = new BigNumber(this.base);
+        result.strToNum("1");
+        BigNumber base = new BigNumber(this);
+        String exp = other.numToStr();
+        StringBuffer buffer = new StringBuffer();
 
-        System.out.println(result.numToStr());
+        while (!exp.equals("0")) {
+            if (isOdd(exp)) {
+                result = result.multiply(base);
+            }
+            strDivideByInt(exp, 2, buffer);
+            exp = buffer.toString();
+            base = base.multiply(base);
+            // reuse buffer
+            buffer.setLength(0);
+        }
 
         return result;
     }
@@ -564,8 +599,16 @@ public class BigNumber {
         return this.getDigitList().isEmpty();
     }
 
+    public boolean isOdd(String numStr) {
+        char least = numStr.charAt(numStr.length() - 1);
+        if (least == '1' || least == '3' || least == '5' || least == '7' || least == '9') {
+            return true;
+        }
+        return false;
+    }
+
     public static void printMap(HashMap<String, BigNumber> varMap) {
-        for(Map.Entry<String, BigNumber> pair : varMap.entrySet()) {
+        for (Map.Entry<String, BigNumber> pair : varMap.entrySet()) {
             System.out.println(pair.getKey() + " = " + pair.getValue().numToStr());
         }
     }
@@ -582,13 +625,13 @@ public class BigNumber {
         // read expr from stdin
         String lineExpr;
         try {
-            while((lineExpr = reader.readLine()) != null) {
+            while ((lineExpr = reader.readLine()) != null) {
                 if (lineExpr.equals("")) {
                     break;
                 }
 
                 String[] params = lineExpr.split(" ");
-                if(params.length != 2) {
+                if (params.length != 2) {
                     System.out.println("Invalid input: wrong format");
                     return;
                 }
@@ -614,7 +657,7 @@ public class BigNumber {
             // first handle ? jump
             if (expr.contains("?")) {
                 String[] jumpParams = expr.split("\\?");
-                if(jumpParams.length != 2) {
+                if (jumpParams.length != 2) {
                     System.out.println("Invalid input: wrong jump");
                     return;
                 }
@@ -622,7 +665,7 @@ public class BigNumber {
                 String var = jumpParams[0];
                 int lineNum = Integer.parseInt(jumpParams[1]);
 
-                System.out.println(var + " = " + varMap.get(var).numToStr());
+                //System.out.println(var + " = " + varMap.get(var).numToStr());
                 if (!varMap.get(var).isZero()) {
                     // if var value is not 0, then go to Line number
                     line = lineNum;
@@ -633,7 +676,7 @@ public class BigNumber {
                 continue;
             }
 
-            System.out.println(expr);
+            //System.out.println(expr);
             // handle expr with or without = and except ?
             String[] exprParams = expr.split("=");
             int length = exprParams.length;
@@ -644,7 +687,7 @@ public class BigNumber {
                 String left = exprParams[0];
                 String right = exprParams[1];
 
-                if(right.charAt(0) <= '9' && right.charAt(0) >= '1') {
+                if (right.charAt(0) <= '9' && right.charAt(0) >= '1') {
                     // it's an assignment of number to var
                     BigNumber big = new BigNumber();
                     big.strToNum(right);
@@ -699,8 +742,8 @@ public class BigNumber {
                 return;
             }
 
-            System.out.println("" + line + ":");
-            printMap(varMap);
+            //System.out.println("" + line + ":");
+            //printMap(varMap);
             // next line
             line++;
         }
@@ -709,7 +752,7 @@ public class BigNumber {
     public static int specifiedBase = optimalBase;
 
     public static void main(String[] args) {
-        if(args.length > 0) {
+        if (args.length > 0) {
             specifiedBase = Integer.parseInt(args[0]);
             System.out.println("Specified base = " + specifiedBase);
         } else {
@@ -717,12 +760,12 @@ public class BigNumber {
         }
 
 /*
-        String str = "90569784495866770974195656280275310090138980613960953881501965823101";
-        //String str = "769";
+        //String str = "90569784495866770974195656280275310090138980613960953881501965823101";
+        String str = "710";
         //BigNumber big = BigNumber.BigNumberWithOptimalBase();
         BigNumber big = new BigNumber(13);
-        String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
-        //String str2 = "730";
+        //String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
+        String str2 = "730";
         //BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
         BigNumber big2 = new BigNumber(13);
         big.strToNum(str);
@@ -731,15 +774,15 @@ public class BigNumber {
         big2.printList();
         System.out.println(big.numToStr());
         System.out.println(big2.numToStr());
-        //StringBuffer buffer = new StringBuffer();
-        //System.out.println(big.divideByInt("0", 13, buffer));
-        //System.out.println(buffer.toString());
+        StringBuffer buffer = new StringBuffer();
+        System.out.println(big.strDivideByInt("710", 730, buffer));
+        System.out.println(buffer.toString());
         //System.out.println("" + Integer.MAX_VALUE);
         //System.out.println(big.multiplyByInt("1232", 51));
         //System.out.println(big.add(big2).numToStr());
-        BigNumber result = big.substract(big2);
-        result.printList();
-        System.out.println(result.numToStr());
+        //BigNumber result = big.substract(big2);
+//        result.printList();
+//        System.out.println(result.numToStr());
         //System.out.println(big.multiply(13).numToStr());
         //System.out.println(big.multiply(big2).numToStr());
         //Math.pow(12, 22);
