@@ -23,6 +23,10 @@ public class BigNumber {
     }
 
     public BigNumber(int base) {
+        if (base > optimalBase || base <= 0) {
+            base = optimalBase;
+        }
+
         this.base = base;
         digitList = new LinkedList<Integer>();
     }
@@ -76,7 +80,7 @@ public class BigNumber {
 
         char[] number = numStr.toCharArray();
         int remnant = 0;
-        int digit = 0;
+        int digit;
 
         if (number.length < digitMaxLength) {
             // It number.length, < digitMaxLength, that means
@@ -126,12 +130,11 @@ public class BigNumber {
             // replace the last digits with remnant
             char[] remnantChars = String.valueOf(remnant).toCharArray();
             // aligned with number (char array)
-            for (int i = 0; i < remnantChars.length; i++) {
-                number[beginDigit + (endDigit - beginDigit) - remnantChars.length + i] = remnantChars[i];
-            }
+            System.arraycopy(remnantChars, 0, number, beginDigit + (endDigit - beginDigit) - remnantChars.length, remnantChars.length);
 
             // move indices
             beginDigit += ((endDigit - beginDigit) - remnantChars.length);
+            // move to one higher significant digit
             endDigit += 1;
         }
         return remnant;
@@ -199,13 +202,13 @@ public class BigNumber {
         collectDigits(intNum, digits);
 
         String result = "0";
-        for (int i = 0; i < digits.size(); i++) {
+        for (Integer digit : digits) {
             if (!result.equals("0")) {
                 // if result != "0", multiplied by 10, that is appended a "0"
                 result = result + "0";
             }
 
-            String temp = multiplyBySingleDigit(numStr, digits.get(i));
+            String temp = multiplyBySingleDigit(numStr, digit);
             // result * 10 + temp
             result = addTwoNumStr(result, temp);
         }
@@ -326,7 +329,25 @@ public class BigNumber {
      * @param dight to be appended
      */
     private void addDigit(int dight) {
-        this.digitList.add(Integer.valueOf(dight));
+        if(dight <= 0) {
+            return;
+        }
+        this.digitList.add(dight);
+    }
+
+    /**
+     * Equivalent to multiply (base * numBase) to this,
+     * that is to prepend numBase 0 digits into digitList
+     * @param numBase the number of node prepend to list
+     */
+    private void shiftByBase(int numBase) {
+        if (numBase <= 0) {
+            return;
+        }
+
+        for (int i = 0; i < numBase; i++) {
+            this.getDigitList().addFirst(0);
+        }
     }
 
     /**
@@ -379,6 +400,11 @@ public class BigNumber {
         return result;
     }
 
+    /**
+     * Subtract this to other big numbrt
+     * @param other big number
+     * @return the difference of two big numbers, if less than 0, return 0
+     */
     public BigNumber substract(BigNumber other) {
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
@@ -423,14 +449,111 @@ public class BigNumber {
         return result;
     }
 
+    /**
+     * This big number multiplied with a integer
+     * @param other integer
+     * @return big number product
+     */
+    public BigNumber multiply(int other) {
+        if(other < 0) {
+            return this;
+        }
+
+        BigNumber result = new BigNumber(this.base);
+
+        int carry = 0;
+        int digit;
+
+        for (Integer integer : this.getDigitList()) {
+            digit = integer;
+
+            int temp = digit * other + carry;
+
+            if (temp > (this.base - 1)) {
+                carry = temp / this.base;
+                temp = temp % this.base;
+            } else {
+                carry = 0;
+            }
+
+            result.addDigit(temp);
+        }
+
+        // Don't forget the last carry
+        if(carry > 0) {
+            result.addDigit(carry);
+        }
+
+        return result;
+    }
+
+    /**
+     * This big number multiplied with a big number
+     * @param other big number
+     * @return big number product
+     */
+    public BigNumber multiply(BigNumber other) {
+        if (this.base != other.getBase()) {
+            throw new NumberFormatException("Base not the same");
+        }
+
+        BigNumber result = new BigNumber(this.base);
+
+        // carry can be non-negative integer
+        int carry = 0;
+        BigNumber left = this;
+        BigNumber right = other;
+        int digit2;
+
+        // To reduce running time, the right operand should be the one with less digit list
+        if(this.getDigitList().size() < other.getDigitList().size()) {
+            BigNumber swap = left;
+            left = right;
+            right = swap;
+        }
+
+        // Resemble to the human steps of calculate the product of two number,
+        // first get one digit of other operand, then multiply with this,
+        // if other has more digit, multiply the previous with base
+        // and add with the product of new digit and this
+        Iterator<Integer> itor2 = right.getDigitList().descendingIterator();
+        while (itor2.hasNext()) {
+            digit2 = itor2.next();
+
+            BigNumber temp = left.multiply(digit2);
+            //System.out.println("D " + temp.numToStr());
+            result = result.add(temp);
+
+            if (itor2.hasNext()) {
+                // multiplied by base
+                // add one node at the head of digitList with value 0
+                result.shiftByBase(1);
+            }
+        }
+
+        return result;
+    }
+
+    public BigNumber power(BigNumber other) {
+        if (this.base != other.getBase()) {
+            throw new NumberFormatException("Base not the same");
+        }
+
+        BigNumber result = new BigNumber(this.base);
+
+        System.out.println(result.numToStr());
+
+        return result;
+    }
+
     public static void main(String[] args) {
         String str = "90569784495866770974195656280275310090138980613960953881501965823101";
         //String str = "769";
-        //BigNumber big = BigNumber.BigNumberWithOptimalBase();
-        BigNumber big = new BigNumber(13);
-        String str2 = "182";
-        //BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
-        BigNumber big2 = new BigNumber(13);
+        BigNumber big = BigNumber.BigNumberWithOptimalBase();
+        //BigNumber big = new BigNumber(13);
+        String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
+        BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
+        //BigNumber big2 = new BigNumber(13);
         big.strToNum(str);
         big2.strToNum(str2);
         big.printList();
@@ -446,5 +569,7 @@ public class BigNumber {
         BigNumber result = big.substract(big2);
         result.printList();
         System.out.println(result.numToStr());
+        System.out.println(big.multiply(13).numToStr());
+        System.out.println(big.multiply(big2).numToStr());
     }
 }
