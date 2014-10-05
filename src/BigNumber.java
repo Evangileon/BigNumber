@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public class BigNumber {
+public class BigNumber implements Comparable<BigNumber> {
 
     private final int base;
-    LinkedList<Integer> digitList;
+    private LinkedList<Integer> digitList;
 
     // The larger the better under restriction that the square of base will not overflow
     public static final int optimalBase = 0x7FFF;
@@ -70,7 +70,7 @@ public class BigNumber {
      * @return integer
      * @throws NumberFormatException
      */
-    public static int charArrayToInt(char[] array, int start, int end)
+    private static int charArrayToInt(char[] array, int start, int end)
             throws NumberFormatException {
         int result = 0;
         for (int i = start; i < end; i++) {
@@ -176,7 +176,7 @@ public class BigNumber {
      *
      * @param numStr string representative number
      * @param digit  single digit integer
-     * @return the result if single digit, otherwise itseld
+     * @return the result if single digit, otherwise itself
      */
     public String multiplyBySingleDigit(String numStr, int digit) {
         if (digit > 9) {
@@ -357,13 +357,13 @@ public class BigNumber {
     /**
      * Append a digit to this big number, this is for only internal operation
      *
-     * @param dight to be appended
+     * @param digit to be appended
      */
-    private void addDigit(int dight) {
-        if (dight < 0) {
+    private void addDigit(int digit) {
+        if (digit < 0) {
             return;
         }
-        this.digitList.add(dight);
+        this.digitList.add(digit);
     }
 
     /**
@@ -432,18 +432,53 @@ public class BigNumber {
         return result;
     }
 
+    @Override
+    public int compareTo(BigNumber o) {
+        if(o == null) {
+            return 0;
+        }
+
+        BigNumber o1 = this;
+
+        int size1 = o1.getDigitList().size();
+        int size2 = o.getDigitList().size();
+
+        if(size1 != size2) {
+            return (size1 - size2);
+        }
+
+        Iterator<Integer> itor1 = o1.getDigitList().descendingIterator();
+        Iterator<Integer> itor2 = o.getDigitList().descendingIterator();
+        // comparison from most significant digit to least
+        while(itor1.hasNext() && itor2.hasNext()) {
+            int digit1 = itor1.next();
+            int digit2 = itor2.next();
+            if(digit1 != digit2) {
+                return (digit1 - digit2);
+            }
+        }
+        // otherwise equal
+        return 0;
+    }
+
     /**
-     * Subtract this to other big numbrt
+     * Subtract this to other big number
      *
      * @param other big number
      * @return the difference of two big numbers, if less than 0, return 0
      */
-    public BigNumber substract(BigNumber other) {
+    public BigNumber subtract(BigNumber other) {
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
 
         BigNumber result = new BigNumber(this.base);
+
+        // result is 0 if this is less than or equal to other
+        if(this.compareTo(other) <= 0) {
+            return result;
+        }
+
         // borrow from higher digit, if current digit is less than others current digit
         int borrow = 0;
         Iterator<Integer> itor1 = this.getDigitList().iterator();
@@ -478,7 +513,6 @@ public class BigNumber {
 
 
             result.addDigit(temp);
-
         }
 
         result.trimTopZeros();
@@ -601,10 +635,7 @@ public class BigNumber {
 
     public boolean isOdd(String numStr) {
         char least = numStr.charAt(numStr.length() - 1);
-        if (least == '1' || least == '3' || least == '5' || least == '7' || least == '9') {
-            return true;
-        }
-        return false;
+        return least == '1' || least == '3' || least == '5' || least == '7' || least == '9';
     }
 
     public static void printMap(HashMap<String, BigNumber> varMap) {
@@ -724,7 +755,7 @@ public class BigNumber {
                             varMap.put(left, leftBigNumber.add(rightBigNumber));
                             break;
                         case '-':
-                            varMap.put(left, leftBigNumber.substract(rightBigNumber));
+                            varMap.put(left, leftBigNumber.subtract(rightBigNumber));
                             break;
                         case '*':
                             varMap.put(left, leftBigNumber.multiply(rightBigNumber));
@@ -749,44 +780,24 @@ public class BigNumber {
         }
     }
 
-    public static int specifiedBase = optimalBase;
+    public static void setSpecifiedBase(int specifiedBase) {
+        BigNumber.specifiedBase = specifiedBase;
+    }
+
+    public static int getSpecifiedBase() {
+        return specifiedBase;
+    }
+
+    private static int specifiedBase = optimalBase;
 
     public static void main(String[] args) {
         if (args.length > 0) {
-            specifiedBase = Integer.parseInt(args[0]);
-            System.out.println("Specified base = " + specifiedBase);
+            BigNumber.setSpecifiedBase(Integer.parseInt(args[0]));
+            System.out.println("Specified base = " + BigNumber.getSpecifiedBase());
         } else {
             System.out.println("Default base = " + BigNumber.optimalBase);
         }
 
-/*
-        //String str = "90569784495866770974195656280275310090138980613960953881501965823101";
-        String str = "710";
-        //BigNumber big = BigNumber.BigNumberWithOptimalBase();
-        BigNumber big = new BigNumber(13);
-        //String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
-        String str2 = "730";
-        //BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
-        BigNumber big2 = new BigNumber(13);
-        big.strToNum(str);
-        big2.strToNum(str2);
-        big.printList();
-        big2.printList();
-        System.out.println(big.numToStr());
-        System.out.println(big2.numToStr());
-        StringBuffer buffer = new StringBuffer();
-        System.out.println(big.strDivideByInt("710", 730, buffer));
-        System.out.println(buffer.toString());
-        //System.out.println("" + Integer.MAX_VALUE);
-        //System.out.println(big.multiplyByInt("1232", 51));
-        //System.out.println(big.add(big2).numToStr());
-        //BigNumber result = big.substract(big2);
-//        result.printList();
-//        System.out.println(result.numToStr());
-        //System.out.println(big.multiply(13).numToStr());
-        //System.out.println(big.multiply(big2).numToStr());
-        //Math.pow(12, 22);
-*/
         executeLoop();
     }
 }
