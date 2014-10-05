@@ -5,10 +5,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
 public class BigNumber {
 
@@ -459,9 +456,9 @@ public class BigNumber {
                 borrow = 0;
             }
 
-            if(itor1.hasNext()) {
-                result.addDigit(temp);
-            }
+
+            result.addDigit(temp);
+
         }
 
         result.trimTopZeros();
@@ -518,8 +515,6 @@ public class BigNumber {
 
         BigNumber result = new BigNumber(this.base);
 
-        // carry can be non-negative integer
-        int carry = 0;
         BigNumber left = this;
         BigNumber right = other;
         int digit2;
@@ -569,6 +564,12 @@ public class BigNumber {
         return this.getDigitList().isEmpty();
     }
 
+    public static void printMap(HashMap<String, BigNumber> varMap) {
+        for(Map.Entry<String, BigNumber> pair : varMap.entrySet()) {
+            System.out.println(pair.getKey() + " = " + pair.getValue().numToStr());
+        }
+    }
+
     public static void executeLoop() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         // store var names and their correspondent big number
@@ -582,6 +583,10 @@ public class BigNumber {
         String lineExpr;
         try {
             while((lineExpr = reader.readLine()) != null) {
+                if (lineExpr.equals("")) {
+                    break;
+                }
+
                 String[] params = lineExpr.split(" ");
                 if(params.length != 2) {
                     System.out.println("Invalid input: wrong format");
@@ -591,7 +596,7 @@ public class BigNumber {
                 int lineNum = Integer.parseInt(params[0]);
                 String expr = params[1];
                 // set expr table for jumping
-                if (exprTable.get(lineNum) == null) {
+                if (exprTable.size() == lineNum) {
                     exprTable.add(expr);
                 } else {
                     exprTable.set(lineNum, expr);
@@ -617,6 +622,7 @@ public class BigNumber {
                 String var = jumpParams[0];
                 int lineNum = Integer.parseInt(jumpParams[1]);
 
+                System.out.println(var + " = " + varMap.get(var).numToStr());
                 if (!varMap.get(var).isZero()) {
                     // if var value is not 0, then go to Line number
                     line = lineNum;
@@ -627,12 +633,13 @@ public class BigNumber {
                 continue;
             }
 
+            System.out.println(expr);
             // handle expr with or without = and except ?
             String[] exprParams = expr.split("=");
             int length = exprParams.length;
             if (length == 1) {
                 // only var name, then print it
-                varMap.get(exprParams[0]).numToStr();
+                System.out.println(varMap.get(exprParams[0]).numToStr());
             } else if (length == 2) {
                 String left = exprParams[0];
                 String right = exprParams[1];
@@ -692,6 +699,8 @@ public class BigNumber {
                 return;
             }
 
+            System.out.println("" + line + ":");
+            printMap(varMap);
             // next line
             line++;
         }
@@ -707,12 +716,13 @@ public class BigNumber {
             System.out.println("Default base = " + BigNumber.optimalBase);
         }
 
-        //String str = "90569784495866770974195656280275310090138980613960953881501965823101";
-        String str = "769";
+/*
+        String str = "90569784495866770974195656280275310090138980613960953881501965823101";
+        //String str = "769";
         //BigNumber big = BigNumber.BigNumberWithOptimalBase();
         BigNumber big = new BigNumber(13);
-        //String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
-        String str2 = "730";
+        String str2 = "75040970647524038461398929683905540248523961720824412136973299943953";
+        //String str2 = "730";
         //BigNumber big2 = BigNumber.BigNumberWithOptimalBase();
         BigNumber big2 = new BigNumber(13);
         big.strToNum(str);
@@ -733,5 +743,7 @@ public class BigNumber {
         //System.out.println(big.multiply(13).numToStr());
         //System.out.println(big.multiply(big2).numToStr());
         //Math.pow(12, 22);
+*/
+        executeLoop();
     }
 }
