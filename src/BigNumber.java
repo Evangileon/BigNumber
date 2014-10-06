@@ -632,7 +632,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
         // example : 2^12 = 4^6 = 16^3 = 16 * (16^2) = 16 * 256
         // this algorithm reduce the running time for power significantly
-        while (!exp.equals("0")) {
+        while (!expStr.equals("0")) {
             if (isOdd(expStr)) {
                 result = result.multiply(base);
             }
