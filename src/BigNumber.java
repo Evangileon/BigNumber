@@ -15,6 +15,16 @@ public class BigNumber implements Comparable<BigNumber> {
     // The larger the better under restriction that the square of base will not overflow
     public static final int optimalBase = 0x7FFF;
 
+    private static int specifiedBase = optimalBase;
+
+    public static void setSpecifiedBase(int specifiedBase) {
+        BigNumber.specifiedBase = specifiedBase;
+    }
+
+    public static int getSpecifiedBase() {
+        return specifiedBase;
+    }
+
     public static BigNumber BigNumberWithOptimalBase() {
         return new BigNumber(optimalBase);
     }
@@ -604,23 +614,32 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
-    public BigNumber power(BigNumber other) {
-        if (this.base != other.getBase()) {
+    /**
+     * Power of big number
+     * @param exp exponent
+     * @return this ^ other
+     */
+    public BigNumber power(BigNumber exp) {
+        if (this.base != exp.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
 
         BigNumber result = new BigNumber(this.base);
         result.strToNum("1");
         BigNumber base = new BigNumber(this);
-        String exp = other.numToStr();
+        String expStr = exp.numToStr();
         StringBuffer buffer = new StringBuffer();
 
+        // example : 2^12 = 4^6 = 16^3 = 16 * (16^2) = 16 * 256
+        // this algorithm reduce the running time for power significantly
         while (!exp.equals("0")) {
-            if (isOdd(exp)) {
+            if (isOdd(expStr)) {
                 result = result.multiply(base);
             }
-            strDivideByInt(exp, 2, buffer);
-            exp = buffer.toString();
+            // exp /= 2
+            strDivideByInt(expStr, 2, buffer);
+            expStr = buffer.toString();
+            // square the base
             base = base.multiply(base);
             // reuse buffer
             buffer.setLength(0);
@@ -629,21 +648,39 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
+    /**
+     * Is this big number zero
+     * In the project, this is zero iff list is empty
+     * Because the end of subtract will trim out the most significant zeros
+     * @return whether this is zero
+     */
     public boolean isZero() {
         return this.getDigitList().isEmpty();
     }
 
+    /**
+     * Helper method. Is the string representative number odd
+     * @param numStr string representative number
+     * @return whether numStr is odd
+     */
     public boolean isOdd(String numStr) {
         char least = numStr.charAt(numStr.length() - 1);
         return least == '1' || least == '3' || least == '5' || least == '7' || least == '9';
     }
 
+    /**
+     * Helper method, used to print (var, BigNumber) in the map
+     * @param varMap the Big Number correspondent to var name
+     */
     public static void printMap(HashMap<String, BigNumber> varMap) {
         for (Map.Entry<String, BigNumber> pair : varMap.entrySet()) {
             System.out.println(pair.getKey() + " = " + pair.getValue().numToStr());
         }
     }
 
+    /**
+     * Method to parse the input and execute the semantic.
+     */
     public static void executeLoop() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         // store var names and their correspondent big number
@@ -780,22 +817,12 @@ public class BigNumber implements Comparable<BigNumber> {
         }
     }
 
-    public static void setSpecifiedBase(int specifiedBase) {
-        BigNumber.specifiedBase = specifiedBase;
-    }
-
-    public static int getSpecifiedBase() {
-        return specifiedBase;
-    }
-
-    private static int specifiedBase = optimalBase;
-
     public static void main(String[] args) {
         if (args.length > 0) {
             BigNumber.setSpecifiedBase(Integer.parseInt(args[0]));
-            System.out.println("Specified base = " + BigNumber.getSpecifiedBase());
+            //System.out.println("Specified base = " + BigNumber.getSpecifiedBase());
         } else {
-            System.out.println("Default base = " + BigNumber.optimalBase);
+            //System.out.println("Default base = " + BigNumber.optimalBase);
         }
 
         executeLoop();
