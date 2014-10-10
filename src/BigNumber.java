@@ -95,7 +95,7 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     public Iterator<Integer> digitIterator() {
-        return  new DigitIterator(digitList);
+        return new DigitIterator(digitList);
     }
 
     class DigitIterator implements Iterator<Integer> {
@@ -488,7 +488,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return the result of addition
      */
     public BigNumber add(BigNumber other) {
-        if(other == null) {
+        if (other == null) {
             return this;
         }
 
@@ -537,7 +537,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
     @Override
     public int compareTo(BigNumber o) {
-        if(o == null) {
+        if (o == null) {
             throw new NullPointerException("The specific object is null");
         }
 
@@ -546,17 +546,17 @@ public class BigNumber implements Comparable<BigNumber> {
         int size1 = o1.getDigitList().size();
         int size2 = o.getDigitList().size();
 
-        if(size1 != size2) {
+        if (size1 != size2) {
             return (size1 - size2);
         }
 
         Iterator<Integer> itor1 = o1.digitDescendingIterator();
         Iterator<Integer> itor2 = o.digitDescendingIterator();
         // comparison from most significant digit to least
-        while(itor1.hasNext() && itor2.hasNext()) {
+        while (itor1.hasNext() && itor2.hasNext()) {
             int digit1 = itor1.next();
             int digit2 = itor2.next();
-            if(digit1 != digit2) {
+            if (digit1 != digit2) {
                 return (digit1 - digit2);
             }
         }
@@ -571,7 +571,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return the difference of two big numbers, if less than 0, return 0
      */
     public BigNumber subtract(BigNumber other) {
-        if(other == null) {
+        if (other == null) {
             return this;
         }
 
@@ -582,7 +582,7 @@ public class BigNumber implements Comparable<BigNumber> {
         BigNumber result = new BigNumber(this.base);
 
         // result is 0 if this is less than or equal to other
-        if(this.compareTo(other) <= 0) {
+        if (this.compareTo(other) <= 0) {
             return result;
         }
 
@@ -642,7 +642,7 @@ public class BigNumber implements Comparable<BigNumber> {
         int carry = 0;
         int digit;
 
-        for (Iterator<Integer> itor = this.digitIterator(); itor.hasNext();) {
+        for (Iterator<Integer> itor = this.digitIterator(); itor.hasNext(); ) {
             digit = itor.next();
 
             int temp = digit * other + carry;
@@ -672,7 +672,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return big number product
      */
     public BigNumber multiply(BigNumber other) {
-        if(other == null) {
+        if (other == null) {
             return this;
         }
 
@@ -717,11 +717,12 @@ public class BigNumber implements Comparable<BigNumber> {
 
     /**
      * Power of big number
+     *
      * @param exp exponent
      * @return this ^ other
      */
     public BigNumber power(BigNumber exp) {
-        if(exp == null) {
+        if (exp == null) {
             return this;
         }
 
@@ -757,6 +758,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * Is this big number zero
      * In the project, this is zero iff list is empty
      * Because the end of subtract will trim out the most significant zeros
+     *
      * @return whether this is zero
      */
     public boolean isZero() {
@@ -765,6 +767,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
     /**
      * Helper method. Is the string representative number odd
+     *
      * @param numStr string representative number
      * @return whether numStr is odd
      */
@@ -775,6 +778,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
     /**
      * Helper method, used to print (var, BigNumber) in the map
+     *
      * @param varMap the Big Number correspondent to var name
      */
     public static void printMap(HashMap<String, BigNumber> varMap) {
