@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public class BigNumber implements Comparable<BigNumber> {
+public class jxy132330_Jun_Yu_BigNumber implements Comparable<jxy132330_Jun_Yu_BigNumber> {
 
     private final int base;
     private LinkedList<Integer> digitList;
@@ -18,22 +18,22 @@ public class BigNumber implements Comparable<BigNumber> {
     private static int specifiedBase = optimalBase;
 
     public static void setSpecifiedBase(int specifiedBase) {
-        BigNumber.specifiedBase = specifiedBase;
+        jxy132330_Jun_Yu_BigNumber.specifiedBase = specifiedBase;
     }
 
     public static int getSpecifiedBase() {
         return specifiedBase;
     }
 
-    public static BigNumber BigNumberWithOptimalBase() {
-        return new BigNumber(optimalBase);
+    public static jxy132330_Jun_Yu_BigNumber BigNumberWithOptimalBase() {
+        return new jxy132330_Jun_Yu_BigNumber(optimalBase);
     }
 
-    public BigNumber() {
+    public jxy132330_Jun_Yu_BigNumber() {
         this(specifiedBase);
     }
 
-    public BigNumber(int base) {
+    public jxy132330_Jun_Yu_BigNumber(int base) {
         if (base > optimalBase || base <= 0) {
             base = optimalBase;
         }
@@ -42,7 +42,7 @@ public class BigNumber implements Comparable<BigNumber> {
         digitList = new LinkedList<Integer>();
     }
 
-    public BigNumber(BigNumber other) {
+    public jxy132330_Jun_Yu_BigNumber(jxy132330_Jun_Yu_BigNumber other) {
         this(other.getBase());
         this.getDigitList().addAll(other.getDigitList());
     }
@@ -398,12 +398,12 @@ public class BigNumber implements Comparable<BigNumber> {
      * @param other right operand
      * @return the result of addition
      */
-    public BigNumber add(BigNumber other) {
+    public jxy132330_Jun_Yu_BigNumber add(jxy132330_Jun_Yu_BigNumber other) {
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
 
-        BigNumber result = new BigNumber(this.base);
+        jxy132330_Jun_Yu_BigNumber result = new jxy132330_Jun_Yu_BigNumber(this.base);
         int carry = 0;
         Iterator<Integer> itor1 = this.getDigitList().iterator();
         Iterator<Integer> itor2 = other.getDigitList().iterator();
@@ -443,12 +443,12 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     @Override
-    public int compareTo(BigNumber o) {
+    public int compareTo(jxy132330_Jun_Yu_BigNumber o) {
         if(o == null) {
             return 0;
         }
 
-        BigNumber o1 = this;
+        jxy132330_Jun_Yu_BigNumber o1 = this;
 
         int size1 = o1.getDigitList().size();
         int size2 = o.getDigitList().size();
@@ -477,12 +477,12 @@ public class BigNumber implements Comparable<BigNumber> {
      * @param other big number
      * @return the difference of two big numbers, if less than 0, return 0
      */
-    public BigNumber subtract(BigNumber other) {
+    public jxy132330_Jun_Yu_BigNumber subtract(jxy132330_Jun_Yu_BigNumber other) {
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
 
-        BigNumber result = new BigNumber(this.base);
+        jxy132330_Jun_Yu_BigNumber result = new jxy132330_Jun_Yu_BigNumber(this.base);
 
         // result is 0 if this is less than or equal to other
         if(this.compareTo(other) <= 0) {
@@ -535,12 +535,12 @@ public class BigNumber implements Comparable<BigNumber> {
      * @param other integer
      * @return big number product
      */
-    public BigNumber multiply(int other) {
+    public jxy132330_Jun_Yu_BigNumber multiply(int other) {
         if (other < 0) {
             return this;
         }
 
-        BigNumber result = new BigNumber(this.base);
+        jxy132330_Jun_Yu_BigNumber result = new jxy132330_Jun_Yu_BigNumber(this.base);
 
         int carry = 0;
         int digit;
@@ -574,20 +574,20 @@ public class BigNumber implements Comparable<BigNumber> {
      * @param other big number
      * @return big number product
      */
-    public BigNumber multiply(BigNumber other) {
+    public jxy132330_Jun_Yu_BigNumber multiply(jxy132330_Jun_Yu_BigNumber other) {
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
 
-        BigNumber result = new BigNumber(this.base);
+        jxy132330_Jun_Yu_BigNumber result = new jxy132330_Jun_Yu_BigNumber(this.base);
 
-        BigNumber left = this;
-        BigNumber right = other;
+        jxy132330_Jun_Yu_BigNumber left = this;
+        jxy132330_Jun_Yu_BigNumber right = other;
         int digit2;
 
         // To reduce running time, the right operand should be the one with less digit list
         if (this.getDigitList().size() < other.getDigitList().size()) {
-            BigNumber swap = left;
+            jxy132330_Jun_Yu_BigNumber swap = left;
             left = right;
             right = swap;
         }
@@ -600,7 +600,7 @@ public class BigNumber implements Comparable<BigNumber> {
         while (itor2.hasNext()) {
             digit2 = itor2.next();
 
-            BigNumber temp = left.multiply(digit2);
+            jxy132330_Jun_Yu_BigNumber temp = left.multiply(digit2);
             //System.out.println("D " + temp.numToStr());
             result = result.add(temp);
 
@@ -619,14 +619,14 @@ public class BigNumber implements Comparable<BigNumber> {
      * @param exp exponent
      * @return this ^ other
      */
-    public BigNumber power(BigNumber exp) {
+    public jxy132330_Jun_Yu_BigNumber power(jxy132330_Jun_Yu_BigNumber exp) {
         if (this.base != exp.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
 
-        BigNumber result = new BigNumber(this.base);
+        jxy132330_Jun_Yu_BigNumber result = new jxy132330_Jun_Yu_BigNumber(this.base);
         result.strToNum("1");
-        BigNumber base = new BigNumber(this);
+        jxy132330_Jun_Yu_BigNumber base = new jxy132330_Jun_Yu_BigNumber(this);
         String expStr = exp.numToStr();
         StringBuffer buffer = new StringBuffer();
 
@@ -669,11 +669,11 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     /**
-     * Helper method, used to print (var, BigNumber) in the map
+     * Helper method, used to print (var, jxy132330_Jun_Yu_BigNumber) in the map
      * @param varMap the Big Number correspondent to var name
      */
-    public static void printMap(HashMap<String, BigNumber> varMap) {
-        for (Map.Entry<String, BigNumber> pair : varMap.entrySet()) {
+    public static void printMap(HashMap<String, jxy132330_Jun_Yu_BigNumber> varMap) {
+        for (Map.Entry<String, jxy132330_Jun_Yu_BigNumber> pair : varMap.entrySet()) {
             System.out.println(pair.getKey() + " = " + pair.getValue().numToStr());
         }
     }
@@ -684,7 +684,7 @@ public class BigNumber implements Comparable<BigNumber> {
     public static void executeLoop() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         // store var names and their correspondent big number
-        HashMap<String, BigNumber> varMap = new HashMap<String, BigNumber>();
+        HashMap<String, jxy132330_Jun_Yu_BigNumber> varMap = new HashMap<String, jxy132330_Jun_Yu_BigNumber>();
         // store line number and expr
         ArrayList<String> exprTable = new ArrayList<String>();
         // exprTable[0] unused
@@ -757,7 +757,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
                 if (right.charAt(0) <= '9' && right.charAt(0) >= '1') {
                     // it's an assignment of number to var
-                    BigNumber big = new BigNumber();
+                    jxy132330_Jun_Yu_BigNumber big = new jxy132330_Jun_Yu_BigNumber();
                     big.strToNum(right);
                     varMap.put(left, big);
                 } else {
@@ -779,8 +779,8 @@ public class BigNumber implements Comparable<BigNumber> {
                     String leftOperand = right.substring(0, k);
                     String rightOperand = right.substring(k + 1);
 
-                    BigNumber leftBigNumber = varMap.get(leftOperand);
-                    BigNumber rightBigNumber = varMap.get(rightOperand);
+                    jxy132330_Jun_Yu_BigNumber leftBigNumber = varMap.get(leftOperand);
+                    jxy132330_Jun_Yu_BigNumber rightBigNumber = varMap.get(rightOperand);
 
                     if (leftBigNumber == null || rightBigNumber == null) {
                         System.out.println("Invalid input: you have to initialize the variable before you use it");
@@ -819,10 +819,10 @@ public class BigNumber implements Comparable<BigNumber> {
 
     public static void main(String[] args) {
         if (args.length > 0) {
-            BigNumber.setSpecifiedBase(Integer.parseInt(args[0]));
-            //System.out.println("Specified base = " + BigNumber.getSpecifiedBase());
+            jxy132330_Jun_Yu_BigNumber.setSpecifiedBase(Integer.parseInt(args[0]));
+            //System.out.println("Specified base = " + jxy132330_Jun_Yu_BigNumber.getSpecifiedBase());
         } else {
-            //System.out.println("Default base = " + BigNumber.optimalBase);
+            //System.out.println("Default base = " + jxy132330_Jun_Yu_BigNumber.optimalBase);
         }
 
         executeLoop();
