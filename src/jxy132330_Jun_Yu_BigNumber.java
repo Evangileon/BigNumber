@@ -14,6 +14,8 @@ public class jxy132330_Jun_Yu_BigNumber implements Comparable<jxy132330_Jun_Yu_B
 
     // The larger the better under restriction that the square of base will not overflow
     public static final int optimalBase = 0x7FFF;
+    // the number of the integers that each list node contains
+    public static final int digitsPerNode = 100;
 
     private static int specifiedBase = optimalBase;
 
@@ -765,13 +767,13 @@ public class jxy132330_Jun_Yu_BigNumber implements Comparable<jxy132330_Jun_Yu_B
                     int k; // k point to the index of operator
                     for (k = 0; k < right.length(); k++) {
                         char token = right.charAt(k);
-                        if (token == '+' || token == '-' || token == '*' || token == '^') {
+                        if (token == '+' || token == '-' || token == '*' || token == '^' || token == '%' || token == '~' || token == ')') {
                             break;
                         }
                     }
 
                     // operator at last char or not contained in expr
-                    if (k == right.length() || k == right.length() - 1) {
+                    if (k == right.length()) {
                         System.out.println("Invalid input: wrong arithmetic expression");
                         return;
                     }
@@ -782,7 +784,7 @@ public class jxy132330_Jun_Yu_BigNumber implements Comparable<jxy132330_Jun_Yu_B
                     jxy132330_Jun_Yu_BigNumber leftBigNumber = varMap.get(leftOperand);
                     jxy132330_Jun_Yu_BigNumber rightBigNumber = varMap.get(rightOperand);
 
-                    if (leftBigNumber == null || rightBigNumber == null) {
+                    if (leftBigNumber == null && rightBigNumber == null) {
                         System.out.println("Invalid input: you have to initialize the variable before you use it");
                         return;
                     }
@@ -798,6 +800,18 @@ public class jxy132330_Jun_Yu_BigNumber implements Comparable<jxy132330_Jun_Yu_B
                             varMap.put(left, leftBigNumber.multiply(rightBigNumber));
                             break;
                         case '^':
+                            varMap.put(left, leftBigNumber.power(rightBigNumber));
+                            break;
+                        case '%':
+                            StringBuffer buffer = new StringBuffer();
+                            BigNumber temp = new BigNumber();
+                            temp.strToNum("" + leftBigNumber.divideByInt(Integer.valueOf(rightOperand), buffer));
+                            varMap.put(left, temp);
+                            break;
+                        case '~':
+                            varMap.put(left, leftBigNumber.power(rightBigNumber));
+                            break;
+                        case ')':
                             varMap.put(left, leftBigNumber.power(rightBigNumber));
                             break;
                         default:
