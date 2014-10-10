@@ -65,7 +65,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * Trim the zeros at tail of linked list
      */
     private void trimTopZeros() {
-        Iterator<Integer> itor = this.getDigitList().descendingIterator();
+        Iterator<Integer> itor = this.digitDescendingIterator();
 
         while (itor.hasNext()) {
             if (itor.next() == 0) {
@@ -96,12 +96,70 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
-    /**
-     * Append the digit to linked list node if has space, otherwise to a new node
-     * @param digit
-     */
-    public void appendDigit(int digit) {
+    public Iterator<Integer> digitIterator() {
+        return  new DigitIterator(digitList);
+    }
 
+    class DigitIterator implements Iterator<Integer> {
+
+        LinkedList<Integer> digitAdhoc;
+        Iterator<Integer> itor;
+
+        DigitIterator(LinkedList<Integer> digitAdhoc) {
+            this.digitAdhoc = digitAdhoc;
+            if (this.digitAdhoc == null) {
+                this.digitAdhoc = new LinkedList<Integer>();
+            }
+            this.itor = this.digitAdhoc.iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return itor.hasNext();
+        }
+
+        @Override
+        public Integer next() {
+            return itor.next();
+        }
+
+        @Override
+        public void remove() {
+            itor.remove();
+        }
+    }
+
+    public Iterator<Integer> digitDescendingIterator() {
+        return new DigitDescendingIterator(digitList);
+    }
+
+    class DigitDescendingIterator implements Iterator<Integer> {
+
+        LinkedList<Integer> digitAdhoc;
+        Iterator<Integer> itor;
+
+        DigitDescendingIterator(LinkedList<Integer> digitAdhoc) {
+            this.digitAdhoc = digitAdhoc;
+            if (this.digitAdhoc == null) {
+                this.digitAdhoc = new LinkedList<Integer>();
+            }
+            this.itor = this.digitAdhoc.descendingIterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return itor.hasNext();
+        }
+
+        @Override
+        public Integer next() {
+            return itor.next();
+        }
+
+        @Override
+        public void remove() {
+            itor.remove();
+        }
     }
 
     /**
@@ -367,7 +425,7 @@ public class BigNumber implements Comparable<BigNumber> {
             num = buffer.toString();
             //System.out.println(num);
             // remnant is the content of every node
-            digitList.add(remnant);
+            addDigit(remnant);
         }
     }
 
@@ -377,7 +435,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return the string representative decimal
      */
     public String numToStr() {
-        Iterator<Integer> itor = this.digitList.descendingIterator();
+        Iterator<Integer> itor = this.digitDescendingIterator();
         String result = "0";
         while (itor.hasNext()) {
             int digit = itor.next();
@@ -442,8 +500,8 @@ public class BigNumber implements Comparable<BigNumber> {
 
         BigNumber result = new BigNumber(this.base);
         int carry = 0;
-        Iterator<Integer> itor1 = this.getDigitList().iterator();
-        Iterator<Integer> itor2 = other.getDigitList().iterator();
+        Iterator<Integer> itor1 = this.digitIterator();
+        Iterator<Integer> itor2 = other.digitIterator();
         int digit1, digit2;
 
         while (itor1.hasNext() || itor2.hasNext()) {
@@ -494,8 +552,8 @@ public class BigNumber implements Comparable<BigNumber> {
             return (size1 - size2);
         }
 
-        Iterator<Integer> itor1 = o1.getDigitList().descendingIterator();
-        Iterator<Integer> itor2 = o.getDigitList().descendingIterator();
+        Iterator<Integer> itor1 = o1.digitDescendingIterator();
+        Iterator<Integer> itor2 = o.digitDescendingIterator();
         // comparison from most significant digit to least
         while(itor1.hasNext() && itor2.hasNext()) {
             int digit1 = itor1.next();
@@ -532,8 +590,8 @@ public class BigNumber implements Comparable<BigNumber> {
 
         // borrow from higher digit, if current digit is less than others current digit
         int borrow = 0;
-        Iterator<Integer> itor1 = this.getDigitList().iterator();
-        Iterator<Integer> itor2 = other.getDigitList().iterator();
+        Iterator<Integer> itor1 = this.digitIterator();
+        Iterator<Integer> itor2 = other.digitIterator();
         int digit1, digit2;
 
         // Because this project don't handle negative number,
@@ -586,8 +644,8 @@ public class BigNumber implements Comparable<BigNumber> {
         int carry = 0;
         int digit;
 
-        for (Integer integer : this.getDigitList()) {
-            digit = integer;
+        for (Iterator<Integer> itor = this.digitIterator(); itor.hasNext();) {
+            digit = itor.next();
 
             int temp = digit * other + carry;
 
@@ -641,7 +699,7 @@ public class BigNumber implements Comparable<BigNumber> {
         // first get one digit of other operand, then multiply with this,
         // if other has more digit, multiply the previous with base
         // and add with the product of new digit and this
-        Iterator<Integer> itor2 = right.getDigitList().descendingIterator();
+        Iterator<Integer> itor2 = right.digitDescendingIterator();
         while (itor2.hasNext()) {
             digit2 = itor2.next();
 
