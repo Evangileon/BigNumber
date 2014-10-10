@@ -84,9 +84,7 @@ public class BigNumber implements Comparable<BigNumber> {
         BigNumber bigNumber = (BigNumber) o;
 
         if (base != bigNumber.base) return false;
-        if (!digitList.equals(bigNumber.digitList)) return false;
-
-        return true;
+        return digitList.equals(bigNumber.digitList);
     }
 
     @Override
@@ -540,7 +538,7 @@ public class BigNumber implements Comparable<BigNumber> {
     @Override
     public int compareTo(BigNumber o) {
         if(o == null) {
-            return 0;
+            throw new NullPointerException("The specific object is null");
         }
 
         BigNumber o1 = this;
@@ -889,34 +887,24 @@ public class BigNumber implements Comparable<BigNumber> {
                     BigNumber leftBigNumber = varMap.get(leftOperand);
                     BigNumber rightBigNumber = varMap.get(rightOperand);
 
-                    if (leftBigNumber == null && rightBigNumber == null) {
+                    assert leftBigNumber != null : "Invalid input: you have to initialize the variable before you use it: " + expr;
+
+                    /*if (leftBigNumber == null && rightBigNumber == null) {
                         System.out.println("Invalid input: you have to initialize the variable before you use it");
                         return;
-                    }
+                    }*/
 
                     switch (right.charAt(k)) {
                         case '+':
-                            if(rightBigNumber == null) {
-                                break;
-                            }
                             varMap.put(left, leftBigNumber.add(rightBigNumber));
                             break;
                         case '-':
-                            if(rightBigNumber == null) {
-                                break;
-                            }
                             varMap.put(left, leftBigNumber.subtract(rightBigNumber));
                             break;
                         case '*':
-                            if(rightBigNumber == null) {
-                                break;
-                            }
                             varMap.put(left, leftBigNumber.multiply(rightBigNumber));
                             break;
                         case '^':
-                            if(rightBigNumber == null) {
-                                break;
-                            }
                             varMap.put(left, leftBigNumber.power(rightBigNumber));
                             break;
                         case '%':
@@ -926,9 +914,6 @@ public class BigNumber implements Comparable<BigNumber> {
                             varMap.put(left, temp);
                             break;
                         case '~':
-                            if(rightBigNumber == null) {
-                                break;
-                            }
                             varMap.put(left, leftBigNumber.power(rightBigNumber));
                             break;
                         case ')':
