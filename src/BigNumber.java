@@ -866,7 +866,9 @@ public class BigNumber implements Comparable<BigNumber> {
      */
     public BigNumber multiply(int other) {
         if (other < 0) {
-            return this;
+            BigNumber result = multiply(Math.abs(other));
+            result.negate();
+            return result;
         }
 
         BigNumber result = new BigNumber(this.base);
@@ -910,6 +912,24 @@ public class BigNumber implements Comparable<BigNumber> {
 
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
+        }
+
+        // a * b = - (-a) * b
+        if (this.isNegative()) {
+            this.negate();
+            BigNumber temp = this.multiply(other);
+            temp.negate();
+            this.negate();
+            return temp;
+        }
+
+        // a * b = - a * (-b)
+        if (other.isNegative()) {
+            other.negate();
+            BigNumber temp = this.multiply(other);
+            temp.negate();
+            other.negate();
+            return temp;
         }
 
         BigNumber result = new BigNumber(this.base);
