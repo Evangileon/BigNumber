@@ -774,8 +774,47 @@ public class BigNumber implements Comparable<BigNumber> {
 
         BigNumber result = new BigNumber(this.base);
 
+        if (this.isNegative() ^ other.isNegative()) {
+            BigNumber temp;
+            if (this.compareTo(other) > 0) {
+                // this is positive, other is negative
+                other.negate();
+
+                temp = this.add(other);
+
+                other.negate();
+            } else {
+                // this is negative, other is positive
+                this.negate();
+
+                temp = this.add(other);
+                temp.negate();
+
+                this.negate();
+            }
+
+            return temp;
+        }
+
+        if (this.isNegative() && other.isNegative()) {
+            // both are negative
+            this.negate();
+            other.negate();
+
+            BigNumber temp = this.subtract(other);
+            temp.negate();
+
+            this.negate();
+            other.negate();
+
+            return temp;
+        }
+
+        // two numbers are positive
         // result is 0 if this is less than or equal to other
         if (this.compareTo(other) <= 0) {
+            result = other.subtract(this);
+            result.negate();
             return result;
         }
 
