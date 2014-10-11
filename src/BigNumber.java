@@ -48,6 +48,12 @@ public class BigNumber implements Comparable<BigNumber> {
     public BigNumber(BigNumber other) {
         this(other.getBase());
         this.getDigitList().addAll(other.getDigitList());
+        this.negative = other.negative;
+    }
+
+    public BigNumber(String str) {
+        this();
+        this.strToNum(str);
     }
 
     public void printList() {
@@ -67,11 +73,7 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     private void negate() {
-        if (!this.isZero()) {
-            negative = !negative;
-        } else {
-            negative = false;
-        }
+        negative = !this.isZero() && !negative;
     }
 
     /**
@@ -229,13 +231,9 @@ public class BigNumber implements Comparable<BigNumber> {
 
         // for abs of divisor < base
         // for convenience, divisor will be converted to its absolute
-        boolean isResultNegative = false;
+        boolean isResultNegative;
 
-        if ((divisor < 0) ^ (this.isNegative())) {
-            isResultNegative = true;
-        } else {
-            isResultNegative = false;
-        }
+        isResultNegative = (divisor < 0) ^ (this.isNegative());
 
         if (this.isZero()) {
             isResultNegative = false;
@@ -273,10 +271,11 @@ public class BigNumber implements Comparable<BigNumber> {
 
         for(Iterator<Integer> itor = this.digitDescendingIterator(); itor.hasNext();) {
             int digit = itor.next();
-            newDigit = (digit + remnant * this.base) / divisor;
-            remnant = digit % divisor;
+            int temp = (digit + remnant * this.base);
+            newDigit = temp / divisor;
+            remnant = temp % divisor;
 
-            result.addFirstDigit(digit);
+            result.addFirstDigit(newDigit);
         }
 
         if (thisNeedNegateAtLast) {
@@ -592,7 +591,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
     /**
      * Prepend a digit to this big number, this is for only internal operation
-     * @param digit
+     * @param digit non negative
      */
     private void addFirstDigit(int digit) {
         if (digit < 0) {
@@ -626,6 +625,15 @@ public class BigNumber implements Comparable<BigNumber> {
     public BigNumber add(BigNumber other) {
         if (other == null) {
             return this;
+        }
+
+        if (this == other) {
+            if (this.isNegative()) {
+                this.negate();
+                BigNumber temp = this.add(other);
+                this.negate();
+                return temp;
+            }
         }
 
         if (this.base != other.getBase()) {
@@ -766,6 +774,10 @@ public class BigNumber implements Comparable<BigNumber> {
     public BigNumber subtract(BigNumber other) {
         if (other == null) {
             return this;
+        }
+
+        if (this == other) {
+            return new BigNumber();
         }
 
         if (this.base != other.getBase()) {
@@ -910,6 +922,15 @@ public class BigNumber implements Comparable<BigNumber> {
             return this;
         }
 
+        if (this == other) {
+            if (this.isNegative()) {
+                this.negate();
+                BigNumber temp = this.multiply(other);
+                this.negate();
+                return temp;
+            }
+        }
+
         if (this.base != other.getBase()) {
             throw new NumberFormatException("Base not the same");
         }
@@ -985,22 +1006,27 @@ public class BigNumber implements Comparable<BigNumber> {
         BigNumber result = new BigNumber(this.base);
         result.strToNum("1");
         BigNumber base = new BigNumber(this);
-        String expStr = exp.numToStr();
-        StringBuffer buffer = new StringBuffer();
+
+        BigNumber expTemp = new BigNumber(exp);
+        //String expStr = exp.numToStr();
+        //StringBuffer buffer = new StringBuffer();
 
         // example : 2^12 = 4^6 = 16^3 = 16 * (16^2) = 16 * 256
         // this algorithm reduce the running time for power significantly
-        while (!expStr.equals("0")) {
-            if (isOdd(expStr)) {
+        while (!expTemp.isZero()) {
+            if (expTemp.isOdd()) {
                 result = result.multiply(base);
+//                System.out.println("exp = " + expTemp.numToStr());
+//                System.out.println("result = " + result.numToStr());
+//                System.out.println("base = " + base.numToStr());
             }
             // exp /= 2
-            strDivideByInt(expStr, 2, buffer);
-            expStr = buffer.toString();
+            BigNumber temp = new BigNumber();
+            expTemp.divideByInt(2, temp);
+            expTemp = temp;
             // square the base
             base = base.multiply(base);
-            // reuse buffer
-            buffer.setLength(0);
+
         }
 
         return result;
@@ -1026,6 +1052,16 @@ public class BigNumber implements Comparable<BigNumber> {
     public boolean isOdd(String numStr) {
         char least = numStr.charAt(numStr.length() - 1);
         return least == '1' || least == '3' || least == '5' || least == '7' || least == '9';
+    }
+
+    public boolean isOdd() {
+        if (this.isZero()) {
+            return false;
+        }
+
+        Iterator<Integer> itor = this.digitIterator();
+        int least = itor.next();
+        return (least & 1) == 1;
     }
 
     /**
@@ -1206,6 +1242,31 @@ public class BigNumber implements Comparable<BigNumber> {
             //System.out.println("Default base = " + BigNumber.optimalBase);
         }
 
-        executeLoop();
+        //executeLoop();
+
+        String str1 = "-1";
+        BigNumber big1 = new BigNumber(str1);
+
+        String str2 = "3";
+        BigNumber big2 = new BigNumber(str2);
+
+        System.out.println("big = " + big1.numToStr());
+
+        BigNumber add = big1.add(big2);
+        System.out.println("add = " + add.numToStr());
+
+        BigNumber sub = big1.subtract(big2);
+        System.out.println("sub = " + sub.numToStr());
+
+        BigNumber mul = big1.multiply(big2);
+        System.out.println("mul = " + mul.numToStr());
+
+        BigNumber pow = big1.power(big2);
+        System.out.println("pow = " + pow.numToStr());
+
+        BigNumber div = new BigNumber();
+        int remnant = big1.divideByInt(-2, div);
+        System.out.println("div = " + div.numToStr());
+
     }
 }
