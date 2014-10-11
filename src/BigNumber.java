@@ -67,7 +67,11 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     private void negate() {
-        negative = !negative;
+        if (!this.isZero()) {
+            negative = !negative;
+        } else {
+            negative = false;
+        }
     }
 
     /**
@@ -628,6 +632,53 @@ public class BigNumber implements Comparable<BigNumber> {
             throw new NumberFormatException("Base not the same");
         }
 
+        // two negative number addition = negation of addition of two absolutes
+        if (this.isNegative() && other.isNegative()) {
+            this.negate();
+            other.negate();
+            BigNumber abs = this.add(other);
+
+            abs.negative = true;
+
+            this.negate();
+            other.negate();
+            return abs;
+        }
+
+        // positive and negative
+        if (this.isNegative() ^ other.isNegative()) {
+            if (this.compareTo(other) > 0) {
+                // this is positive, other is negative
+                other.negate();
+
+                BigNumber temp;
+                if (this.compareTo(other) > 0) {
+                    temp = subtract(other);
+                } else {
+                    temp = other.subtract(this);
+                    temp.negate();
+                }
+
+                other.negate();
+                return temp;
+            } else {
+                // this is negative, other is positive
+                this.negate();
+
+                BigNumber temp;
+                if(this.compareTo(other) > 0) {
+                    temp = this.subtract(other);
+                    temp.negate();
+                } else {
+                    temp = other.subtract(this);
+                }
+
+                this.negate();
+                return temp;
+            }
+        }
+
+        // two positive numbers
         BigNumber result = new BigNumber(this.base);
         int carry = 0;
         Iterator<Integer> itor1 = this.digitIterator();
@@ -679,6 +730,11 @@ public class BigNumber implements Comparable<BigNumber> {
         }
 
         BigNumber o1 = this;
+
+        // negative and positive
+        if (o1.isNegative() ^ o.isNegative()) {
+            return o1.isNegative() ? -1 : 1;
+        }
 
         int size1 = o1.getDigitList().size();
         int size2 = o.getDigitList().size();
