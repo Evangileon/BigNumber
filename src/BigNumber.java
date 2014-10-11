@@ -974,7 +974,7 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return this ^ other
      */
     public BigNumber power(BigNumber exp) {
-        if (exp == null) {
+        if (exp == null || exp.isNegative()) {
             return this;
         }
 
