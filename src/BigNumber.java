@@ -223,53 +223,72 @@ public class BigNumber implements Comparable<BigNumber> {
             throw new IllegalArgumentException("Argument 'divisor' is 0");
         }
 
-        if (Math.abs(divisor) >= this.base) {
-            // big divisor
-            StringBuffer buffer = new StringBuffer();
-            int remnant = strDivideByInt(this.numToStr(), divisor, buffer);
-            BigNumber temp = new BigNumber();
-            temp.strToNum(buffer.toString());
-            result.swapBigNumbers(temp);
-            return remnant;
-        }
-
         // for abs of divisor < base
         // for convenience, divisor will be converted to its absolute
         boolean isResultNegative = false;
-        boolean thisNeedNegateAtLast = false;
-        if (divisor < 0) {
-            if (this.isNegative()) {
-                isResultNegative = false;
-            } else {
-                // positive or zero
-                isResultNegative = true;
-            }
+
+        if ((divisor < 0) ^ (this.isNegative())) {
+            isResultNegative = true;
         } else {
-            // divisor > 0
-            if (this.isNegative()) {
-                isResultNegative = true;
-            } else {
-                isResultNegative = false;
-            }
+            isResultNegative = false;
+        }
+
+        if (this.isZero()) {
+            isResultNegative = false;
         }
 
         divisor = Math.abs(divisor);
+
+        if (Math.abs(divisor) >= this.base) {
+            // big divisor
+            StringBuffer buffer = new StringBuffer();
+
+            String str = this.absoluteNumToStr();
+            int remnant = strDivideByInt(str, divisor, buffer);
+            BigNumber temp = new BigNumber();
+            temp.strToNum(buffer.toString());
+            result.swapBigNumbers(temp);
+
+            if (isResultNegative) {
+                result.negative = true;
+            }
+            return remnant;
+        }
+
+
+        boolean thisNeedNegateAtLast = false;
         if (this.isNegative()) {
             thisNeedNegateAtLast = true;
             this.negate();
         }
 
         // TODO everything
+        int newDigit;
+        int remnant = 0;
+        boolean firstZero = true;
+
+        for(Iterator<Integer> itor = this.digitDescendingIterator(); itor.hasNext();) {
+            int digit = itor.next();
+            newDigit = (digit + remnant * this.base) / divisor;
+            remnant = digit % divisor;
+
+            result.addFirstDigit(digit);
+        }
 
         if (thisNeedNegateAtLast) {
             this.negate();
         }
 
-        return 0;
+        if(isResultNegative) {
+            result.negate();
+        }
+        result.trimTopZeros();
+
+        return remnant;
     }
 
     /**
-     * String representative big number divided by a integer
+     * String representative big number divided by a integer, only accept string without '-'
      *
      * @param numStr string representation of big number
      * @param divisor delimiter
@@ -277,6 +296,11 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return the remnant of the division
      */
     public int strDivideByInt(String numStr, int divisor, StringBuffer buffer) {
+        if(numStr.charAt(0) == '-') {
+            throw new IllegalArgumentException("numStr can not be positive");
+        }
+
+
         String digitMaxStr = String.valueOf(divisor);
         // The max length of chars that one iteration of division will affect
         int digitMaxLength = digitMaxStr.length();
@@ -487,6 +511,12 @@ public class BigNumber implements Comparable<BigNumber> {
      * @param str the string representative decimal
      */
     public void strToNum(String str) {
+        boolean isResultNegative = false;
+        if (str.charAt(0) == '-') {
+            str =  str.substring(1);
+            isResultNegative = true;
+        }
+
         int remnant;
         String num = str;
 
@@ -499,6 +529,10 @@ public class BigNumber implements Comparable<BigNumber> {
             // remnant is the content of every node
             addDigit(remnant);
         }
+
+        if (isResultNegative) {
+            this.negative = true;
+        }
     }
 
     /**
@@ -507,6 +541,20 @@ public class BigNumber implements Comparable<BigNumber> {
      * @return the string representative decimal
      */
     public String numToStr() {
+        String absoluteResult = this.absoluteNumToStr();
+
+        if(this.isNegative()) {
+            return "-" + absoluteResult;
+        }
+        return absoluteResult;
+    }
+
+    /**
+     * Absolute of big number to string
+     *
+     * @return the string representative decimal
+     */
+    public String absoluteNumToStr() {
         Iterator<Integer> itor = this.digitDescendingIterator();
         String result = "0";
         while (itor.hasNext()) {
@@ -523,7 +571,6 @@ public class BigNumber implements Comparable<BigNumber> {
             // add result * base + temp
             result = addTwoNumStr(result, temp);
         }
-
         return result;
     }
 
@@ -537,6 +584,17 @@ public class BigNumber implements Comparable<BigNumber> {
             return;
         }
         this.digitList.add(digit);
+    }
+
+    /**
+     * Prepend a digit to this big number, this is for only internal operation
+     * @param digit
+     */
+    private void addFirstDigit(int digit) {
+        if (digit < 0) {
+            return;
+        }
+        this.digitList.addFirst(digit);
     }
 
     /**
@@ -609,6 +667,11 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
+    /**
+     * Absolute compare
+     * @param o other object
+     * @return int
+     */
     @Override
     public int compareTo(BigNumber o) {
         if (o == null) {
@@ -948,7 +1011,7 @@ public class BigNumber implements Comparable<BigNumber> {
                     int k; // k point to the index of operator
                     for (k = 0; k < right.length(); k++) {
                         char token = right.charAt(k);
-                        if (token == '+' || token == '-' || token == '*' || token == '^' || token == '%' || token == '~' || token == ')') {
+                        if (token == '+' || token == '-' || token == '*' || token == '/' || token == '^' || token == '%' || token == '~' || token == ')') {
                             break;
                         }
                     }
@@ -982,14 +1045,20 @@ public class BigNumber implements Comparable<BigNumber> {
                         case '*':
                             varMap.put(left, leftBigNumber.multiply(rightBigNumber));
                             break;
+                        case '/':
+                            BigNumber output = new BigNumber();
+                            leftBigNumber.divideByInt(Integer.valueOf(rightOperand), output);
+                            varMap.put(left, output);
+                            break;
                         case '^':
                             varMap.put(left, leftBigNumber.power(rightBigNumber));
                             break;
                         case '%':
-                            StringBuffer buffer = new StringBuffer();
-                            BigNumber temp = new BigNumber();
-                            temp.strToNum("" + leftBigNumber.divideByInt(Integer.valueOf(rightOperand), buffer));
-                            varMap.put(left, temp);
+                            BigNumber output2 = new BigNumber();
+                            int temp = leftBigNumber.divideByInt(Integer.valueOf(rightOperand), output2);
+                            BigNumber remnant = new BigNumber();
+                            remnant.strToNum("" + temp);
+                            varMap.put(left, remnant);
                             break;
                         case '~':
                             varMap.put(left, leftBigNumber.power(rightBigNumber));
