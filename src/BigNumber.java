@@ -11,6 +11,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
     private final int base;
     private LinkedList<Integer> digitList;
+    private boolean negative = false;
 
     // The larger the better under restriction that the square of base will not overflow
     public static final int optimalBase = 0x7FFF;
@@ -61,6 +62,14 @@ public class BigNumber implements Comparable<BigNumber> {
         return digitList;
     }
 
+    public boolean isNegative() {
+        return this.negative;
+    }
+
+    private void negate() {
+        negative = !negative;
+    }
+
     /**
      * Trim the zeros at tail of linked list
      */
@@ -74,6 +83,10 @@ public class BigNumber implements Comparable<BigNumber> {
                 return;
             }
         }
+
+        if (this.getDigitList().size() == 0) {
+            this.negative = false;
+        }
     }
 
     @Override
@@ -83,8 +96,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
         BigNumber bigNumber = (BigNumber) o;
 
-        if (base != bigNumber.base) return false;
-        return digitList.equals(bigNumber.digitList);
+        return base == bigNumber.base && digitList.equals(bigNumber.digitList);
     }
 
     @Override
@@ -185,25 +197,87 @@ public class BigNumber implements Comparable<BigNumber> {
     /**
      * This big number divided by integer
      *
-     * @param intNum delimiter
+     * @param divisor delimiter
      * @param buffer for output
      * @return remnant
      */
-    public int divideByInt(int intNum, StringBuffer buffer) {
+    private int divideByInt(int divisor, StringBuffer buffer) {
         String str = this.numToStr();
-        return strDivideByInt(str, intNum, buffer);
+        return strDivideByInt(str, divisor, buffer);
+    }
+
+    private void swapBigNumbers(BigNumber other) {
+        LinkedList<Integer> swap = this.digitList;
+        this.digitList = other.digitList;
+        other.digitList = swap;
+    }
+
+    /**
+     * Big number divided by integer
+     * @param divisor integer
+     * @param result for output the result of division, you have to initialize it in caller before calling
+     * @return remnant
+     */
+    public int divideByInt(int divisor, BigNumber result) {
+        if(divisor == 0) {
+            throw new IllegalArgumentException("Argument 'divisor' is 0");
+        }
+
+        if (Math.abs(divisor) >= this.base) {
+            // big divisor
+            StringBuffer buffer = new StringBuffer();
+            int remnant = strDivideByInt(this.numToStr(), divisor, buffer);
+            BigNumber temp = new BigNumber();
+            temp.strToNum(buffer.toString());
+            result.swapBigNumbers(temp);
+            return remnant;
+        }
+
+        // for abs of divisor < base
+        // for convenience, divisor will be converted to its absolute
+        boolean isResultNegative = false;
+        boolean thisNeedNegateAtLast = false;
+        if (divisor < 0) {
+            if (this.isNegative()) {
+                isResultNegative = false;
+            } else {
+                // positive or zero
+                isResultNegative = true;
+            }
+        } else {
+            // divisor > 0
+            if (this.isNegative()) {
+                isResultNegative = true;
+            } else {
+                isResultNegative = false;
+            }
+        }
+
+        divisor = Math.abs(divisor);
+        if (this.isNegative()) {
+            thisNeedNegateAtLast = true;
+            this.negate();
+        }
+
+        // TODO everything
+
+        if (thisNeedNegateAtLast) {
+            this.negate();
+        }
+
+        return 0;
     }
 
     /**
      * String representative big number divided by a integer
      *
      * @param numStr string representation of big number
-     * @param intNum delimiter
+     * @param divisor delimiter
      * @param buffer to store the string representation of the result
      * @return the remnant of the division
      */
-    public int strDivideByInt(String numStr, int intNum, StringBuffer buffer) {
-        String digitMaxStr = String.valueOf(intNum);
+    public int strDivideByInt(String numStr, int divisor, StringBuffer buffer) {
+        String digitMaxStr = String.valueOf(divisor);
         // The max length of chars that one iteration of division will affect
         int digitMaxLength = digitMaxStr.length();
 
@@ -224,8 +298,8 @@ public class BigNumber implements Comparable<BigNumber> {
             // after arithmetic operation, return append digit and return remnant immediately
             // this can reduce running time
             int tempInt = charArrayToInt(number, 0, number.length);
-            digit = tempInt / intNum;
-            remnant = tempInt % intNum;
+            digit = tempInt / divisor;
+            remnant = tempInt % divisor;
             buffer.append(digit);
             return remnant;
         }
@@ -236,8 +310,8 @@ public class BigNumber implements Comparable<BigNumber> {
         for (int beginDigit = 0, endDigit = beginDigit + digitMaxLength; endDigit <= number.length; ) {
 
             int tempInt = charArrayToInt(number, beginDigit, endDigit);
-            digit = tempInt / intNum;
-            remnant = tempInt % intNum;
+            digit = tempInt / divisor;
+            remnant = tempInt % divisor;
 
             // add to linked list
             if (digit != 0) {
