@@ -1068,6 +1068,8 @@ public class BigNumber implements Comparable<BigNumber> {
 
     /**
      * Big number divided by big number
+     * Reference: <a href="http://courses.cs.vt.edu/~cs1104/BuildingBlocks/divide.030.html">Digit Shift Division</a>
+     * Any base algorithm can derive from this algorithm
      * @param divisor big number
      * @return result
      */
@@ -1162,13 +1164,18 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
+    /**
+     * The estimation of the number that close to this, usually the half length of this
+     * @return estimation of sqrt
+     */
     public BigNumber closeToSqrt() {
         BigNumber result = new BigNumber(this);
         return result.shiftRight(result.getNumDigit() / 2);
     }
 
     /**
-     * Square root, Newton method
+     * Square root, Newton method (aka. Babylonian method)
+     * Reference: <a href="https://en.wikipedia.org/wiki/Methods_of_computing_square_roots">Newton's Method</a>
      * @return sqrt of this
      */
     public BigNumber sqrt() {
@@ -1189,6 +1196,28 @@ public class BigNumber implements Comparable<BigNumber> {
         } while (!cmp.equals(x1));
 
         return x1;
+    }
+
+    /**
+     * Find the maximum power of a number that the program can calculate in 15 secs,
+     * using repeated squaring.
+     * @return very big number
+     */
+    public BigNumber maximumPowerIn15Secs() {
+        long startTime = System.currentTimeMillis();
+        long currentTime = startTime + 1;
+        long limit = 15 * 1000;
+
+        BigNumber temp = new BigNumber(this);
+        BigNumber result = temp;
+
+        while ((currentTime - startTime) <= limit) {
+            result = temp;
+            temp = temp.multiply(temp);
+            currentTime = System.currentTimeMillis();
+        }
+
+        return result;
     }
 
     /**
@@ -1339,10 +1368,10 @@ public class BigNumber implements Comparable<BigNumber> {
                             varMap.put(left, remnant);
                             break;
                         case '~':
-                            varMap.put(left, leftBigNumber.power(rightBigNumber));
+                            varMap.put(left, leftBigNumber.sqrt());
                             break;
                         case ')':
-                            varMap.put(left, leftBigNumber.power(rightBigNumber));
+                            varMap.put(left, leftBigNumber.maximumPowerIn15Secs());
                             break;
                         default:
                             System.out.println("Invalid input: unknown operator");
