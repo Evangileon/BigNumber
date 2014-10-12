@@ -102,7 +102,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
         BigNumber bigNumber = (BigNumber) o;
 
-        return base == bigNumber.base && digitList.equals(bigNumber.digitList);
+        return negative == bigNumber.negative && base == bigNumber.base && digitList.equals(bigNumber.digitList);
     }
 
     @Override
@@ -146,6 +146,10 @@ public class BigNumber implements Comparable<BigNumber> {
 
     public Iterator<Integer> digitIterator() {
         return new DigitIterator(digitList);
+    }
+
+    public int getNumDigit() {
+        return this.digitList.size();
     }
 
     class DigitIterator implements Iterator<Integer> {
@@ -248,78 +252,6 @@ public class BigNumber implements Comparable<BigNumber> {
         LinkedList<Integer> swap = this.digitList;
         this.digitList = other.digitList;
         other.digitList = swap;
-    }
-
-    /**
-     * Big number divided by integer
-     * @param divisor integer
-     * @param result for output the result of division, you have to initialize it in caller before calling
-     * @return remnant
-     */
-    public int divideByInt(int divisor, BigNumber result) {
-        if(divisor == 0) {
-            throw new IllegalArgumentException("Argument 'divisor' is 0");
-        }
-
-        // for abs of divisor < base
-        // for convenience, divisor will be converted to its absolute
-        boolean isResultNegative;
-
-        isResultNegative = (divisor < 0) ^ (this.isNegative());
-
-        if (this.isZero()) {
-            isResultNegative = false;
-        }
-
-        divisor = Math.abs(divisor);
-
-        if (Math.abs(divisor) >= this.base) {
-            // big divisor
-            StringBuffer buffer = new StringBuffer();
-
-            String str = this.absoluteNumToStr();
-            int remnant = strDivideByInt(str, divisor, buffer);
-            BigNumber temp = new BigNumber();
-            temp.strToNum(buffer.toString());
-            result.swapBigNumbers(temp);
-
-            if (isResultNegative) {
-                result.negative = true;
-            }
-            return remnant;
-        }
-
-
-        boolean thisNeedNegateAtLast = false;
-        if (this.isNegative()) {
-            thisNeedNegateAtLast = true;
-            this.negate();
-        }
-
-        // TODO everything
-        int newDigit;
-        int remnant = 0;
-        boolean firstZero = true;
-
-        for(Iterator<Integer> itor = this.digitDescendingIterator(); itor.hasNext();) {
-            int digit = itor.next();
-            int temp = (digit + remnant * this.base);
-            newDigit = temp / divisor;
-            remnant = temp % divisor;
-
-            result.addFirstDigit(newDigit);
-        }
-
-        if (thisNeedNegateAtLast) {
-            this.negate();
-        }
-
-        if(isResultNegative) {
-            result.negate();
-        }
-        result.trimTopZeros();
-
-        return remnant;
     }
 
     /**
@@ -644,8 +576,48 @@ public class BigNumber implements Comparable<BigNumber> {
         }
 
         for (int i = 0; i < numBase; i++) {
-            this.getDigitList().addFirst(0);
+            this.addFirstDigit(0);
         }
+    }
+
+    /**
+     * Return the big number left shifted from this by num
+     * @param num the number of digit shifted
+     * @return new big number
+     */
+    public BigNumber shiftLeft(int num) {
+        if(num <= 0) {
+            return new BigNumber(this);
+        }
+        BigNumber result = new BigNumber(this);
+        for (int i = 0; i < num; i++) {
+            result.addFirstDigit(0);
+        }
+        return result;
+    }
+
+    /**
+     * Return the big number right shifted from this by num
+     * @param num the number of digit shifted
+     * @return new big number
+     */
+    public BigNumber shiftRight(int num) {
+        if(num <= 0) {
+            return new BigNumber(this);
+        }
+        BigNumber result = new BigNumber(this);
+        Iterator<Integer> itor = result.digitIterator();
+        while (itor.hasNext()) {
+            itor.next();
+            itor.remove();
+
+            num--;
+            if (num == 0) {
+                break;
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -1025,6 +997,128 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     /**
+     * Big number divided by integer
+     * @param divisor integer
+     * @param result for output the result of division, you have to initialize it in caller before calling
+     * @return remnant
+     */
+    public int divideByInt(int divisor, BigNumber result) {
+        if(divisor == 0) {
+            throw new IllegalArgumentException("Argument 'divisor' is 0");
+        }
+
+        // for abs of divisor < base
+        // for convenience, divisor will be converted to its absolute
+        boolean isResultNegative;
+
+        isResultNegative = (divisor < 0) ^ (this.isNegative());
+
+        if (this.isZero()) {
+            isResultNegative = false;
+        }
+
+        divisor = Math.abs(divisor);
+
+        if (Math.abs(divisor) >= this.base) {
+            // big divisor
+            StringBuffer buffer = new StringBuffer();
+
+            String str = this.absoluteNumToStr();
+            int remnant = strDivideByInt(str, divisor, buffer);
+            BigNumber temp = new BigNumber();
+            temp.strToNum(buffer.toString());
+            result.swapBigNumbers(temp);
+
+            if (isResultNegative) {
+                result.negative = true;
+            }
+            return remnant;
+        }
+
+
+        boolean thisNeedNegateAtLast = false;
+        if (this.isNegative()) {
+            thisNeedNegateAtLast = true;
+            this.negate();
+        }
+
+        int newDigit;
+        int remnant = 0;
+
+        for(Iterator<Integer> itor = this.digitDescendingIterator(); itor.hasNext();) {
+            int digit = itor.next();
+            int temp = (digit + remnant * this.base);
+            newDigit = temp / divisor;
+            remnant = temp % divisor;
+
+            result.addFirstDigit(newDigit);
+        }
+
+        if (thisNeedNegateAtLast) {
+            this.negate();
+        }
+
+        if(isResultNegative) {
+            result.negate();
+        }
+        result.trimTopZeros();
+
+        return remnant;
+    }
+
+    /**
+     * Big number divided by big number
+     * @param divisor big number
+     * @return result
+     */
+    public BigNumber divide(BigNumber divisor) {
+        if (divisor == null || divisor.isZero()) {
+            throw new IllegalArgumentException("divisor is null or zero");
+        }
+
+        if (this == divisor) {
+            return new BigNumber("1");
+        }
+
+        if (this.isNegative()) {
+            this.negate();
+
+            BigNumber temp = this.divide(divisor);
+            temp.negate();
+
+            this.negate();
+            return temp;
+        }
+
+        if (divisor.isNegative()) {
+            divisor.negate();
+
+            BigNumber temp = this.divide(divisor);
+            temp.negate();
+
+            divisor.negate();
+            return temp;
+        }
+
+        BigNumber result = new BigNumber();
+        BigNumber p = new BigNumber(this);
+        BigNumber q = new BigNumber(divisor);
+        BigNumber one = new BigNumber("1");
+
+        while (p.compareTo(q) >= 0) {
+            int counter = 0;
+            while (p.compareTo(q.shiftLeft(counter)) >= 0) {
+                counter++;
+            }
+
+            result = result.add(one.shiftLeft(counter - 1));
+            p = p.subtract(q.shiftLeft(counter - 1));
+        }
+
+        return result;
+    }
+
+    /**
      * Power of big number
      *
      * @param exp exponent
@@ -1068,8 +1162,13 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
+    public BigNumber closeToSqrt() {
+        BigNumber result = new BigNumber(this);
+        return result.shiftRight(result.getNumDigit() / 2);
+    }
+
     /**
-     * Square root
+     * Square root, Newton method
      * @return sqrt of this
      */
     public BigNumber sqrt() {
@@ -1077,26 +1176,19 @@ public class BigNumber implements Comparable<BigNumber> {
             throw new ArithmeticException("Negative number can not sqrt");
         }
 
-        BigNumber a = new BigNumber(this);
-        BigNumber c = a.subtract(new BigNumber("1"));
+        BigNumber x0 = this.closeToSqrt();
+        BigNumber x1;
+        BigNumber cmp;
 
-        BigNumber a1;
         do {
-            // a_n+1 = a_n - a_n * c_n /2
-            BigNumber right = new BigNumber();
-            a.multiply(c).divideByInt(2, right);
-            a1 = a.subtract(right);
-            BigNumber c1 = new BigNumber();
-            // c_n+1 = c_n * c_n * (c_n -3) / 4
-            c.subtract(new BigNumber("3")).multiply(c.multiply(c)).divideByInt(4, c1);
-            a = a1;
-            c = c1;
-        } while (!c.isZero());
+            BigNumber temp = this.divide(x0).add(x0);
+            x1 = new BigNumber();
+            temp.divideByInt(2, x1);
+            cmp = x0;
+            x0 = x1;
+        } while (!cmp.equals(x1));
 
-        if (a.isNegative()) {
-            a.negate();
-        }
-        return a;
+        return x1;
     }
 
     /**
@@ -1279,10 +1371,10 @@ public class BigNumber implements Comparable<BigNumber> {
 
         //executeLoop();
 
-        String str1 = "8";
+        String str1 = "23897455642343245";
         BigNumber big1 = new BigNumber(str1);
 
-        String str2 = "-3";
+        String str2 = "-334";
         BigNumber big2 = new BigNumber(str2);
 
         System.out.println("big = " + big1.numToStr());
@@ -1303,6 +1395,10 @@ public class BigNumber implements Comparable<BigNumber> {
         BigNumber div = new BigNumber();
         int remnant = big1.divideByInt(-2, div);
         System.out.println("div = " + div.numToStr());
+
+
+        BigNumber divB = big1.divide(big2);
+        System.out.println("div big = " + divB.numToStr());
 
         BigNumber sqrt = big1.sqrt();
         System.out.println("sqrt = " + sqrt.numToStr());
