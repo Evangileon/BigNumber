@@ -112,6 +112,38 @@ public class BigNumber implements Comparable<BigNumber> {
         return result;
     }
 
+    /**
+     * Is this big number zero
+     * In the project, this is zero iff list is empty
+     * Because the end of subtract will trim out the most significant zeros
+     *
+     * @return whether this is zero
+     */
+    public boolean isZero() {
+        return this.getDigitList().isEmpty();
+    }
+
+    /**
+     * Helper method. Is the string representative number odd
+     *
+     * @param numStr string representative number
+     * @return whether numStr is odd
+     */
+    public boolean isOdd(String numStr) {
+        char least = numStr.charAt(numStr.length() - 1);
+        return least == '1' || least == '3' || least == '5' || least == '7' || least == '9';
+    }
+
+    public boolean isOdd() {
+        if (this.isZero()) {
+            return false;
+        }
+
+        Iterator<Integer> itor = this.digitIterator();
+        int least = itor.next();
+        return (least & 1) == 1;
+    }
+
     public Iterator<Integer> digitIterator() {
         return new DigitIterator(digitList);
     }
@@ -765,6 +797,10 @@ public class BigNumber implements Comparable<BigNumber> {
         return 0;
     }
 
+//    public BigNumber subtract(int other) {
+//
+//    }
+
     /**
      * Subtract this to other big number
      *
@@ -824,7 +860,7 @@ public class BigNumber implements Comparable<BigNumber> {
 
         // two numbers are positive
         // result is 0 if this is less than or equal to other
-        if (this.compareTo(other) <= 0) {
+        if (this.compareTo(other) < 0) {
             result = other.subtract(this);
             result.negate();
             return result;
@@ -1033,35 +1069,34 @@ public class BigNumber implements Comparable<BigNumber> {
     }
 
     /**
-     * Is this big number zero
-     * In the project, this is zero iff list is empty
-     * Because the end of subtract will trim out the most significant zeros
-     *
-     * @return whether this is zero
+     * Square root
+     * @return sqrt of this
      */
-    public boolean isZero() {
-        return this.getDigitList().isEmpty();
-    }
-
-    /**
-     * Helper method. Is the string representative number odd
-     *
-     * @param numStr string representative number
-     * @return whether numStr is odd
-     */
-    public boolean isOdd(String numStr) {
-        char least = numStr.charAt(numStr.length() - 1);
-        return least == '1' || least == '3' || least == '5' || least == '7' || least == '9';
-    }
-
-    public boolean isOdd() {
-        if (this.isZero()) {
-            return false;
+    public BigNumber sqrt() {
+        if (this.isNegative()) {
+            throw new ArithmeticException("Negative number can not sqrt");
         }
 
-        Iterator<Integer> itor = this.digitIterator();
-        int least = itor.next();
-        return (least & 1) == 1;
+        BigNumber a = new BigNumber(this);
+        BigNumber c = a.subtract(new BigNumber("1"));
+
+        BigNumber a1;
+        do {
+            // a_n+1 = a_n - a_n * c_n /2
+            BigNumber right = new BigNumber();
+            a.multiply(c).divideByInt(2, right);
+            a1 = a.subtract(right);
+            BigNumber c1 = new BigNumber();
+            // c_n+1 = c_n * c_n * (c_n -3) / 4
+            c.subtract(new BigNumber("3")).multiply(c.multiply(c)).divideByInt(4, c1);
+            a = a1;
+            c = c1;
+        } while (!c.isZero());
+
+        if (a.isNegative()) {
+            a.negate();
+        }
+        return a;
     }
 
     /**
@@ -1244,10 +1279,10 @@ public class BigNumber implements Comparable<BigNumber> {
 
         //executeLoop();
 
-        String str1 = "-1";
+        String str1 = "8";
         BigNumber big1 = new BigNumber(str1);
 
-        String str2 = "3";
+        String str2 = "-3";
         BigNumber big2 = new BigNumber(str2);
 
         System.out.println("big = " + big1.numToStr());
@@ -1260,13 +1295,16 @@ public class BigNumber implements Comparable<BigNumber> {
 
         BigNumber mul = big1.multiply(big2);
         System.out.println("mul = " + mul.numToStr());
+        mul.printList();
 
-        BigNumber pow = big1.power(big2);
-        System.out.println("pow = " + pow.numToStr());
+        //BigNumber pow = big1.power(big2);
+        //System.out.println("pow = " + pow.numToStr());
 
         BigNumber div = new BigNumber();
         int remnant = big1.divideByInt(-2, div);
         System.out.println("div = " + div.numToStr());
 
+        BigNumber sqrt = big1.sqrt();
+        System.out.println("sqrt = " + sqrt.numToStr());
     }
 }
