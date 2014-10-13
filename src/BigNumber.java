@@ -347,23 +347,44 @@ public class BigNumber implements Comparable<BigNumber> {
                 buffer.append(digit);//
             }
 
-            if (remnant == 0) {
+            /*if (remnant == 0) {
                 // if remnant is 0, there is no need to replace chars in original char arrays
                 // just move a window which width is (digitMaxLength - 1) to right
                 beginDigit += (endDigit - beginDigit);
-                endDigit += (digitMaxLength - 1);
+                endDigit += (digitMaxLength);
+                for (int v = 0; v < (digitMaxLength - 1); v++) {
+                    buffer.append("" + 0);
+                }
                 continue;
-            }
+            }*/
 
             // replace the last digits with remnant
-            char[] remnantChars = String.valueOf(remnant).toCharArray();
-            // aligned with number (char array)
-            System.arraycopy(remnantChars, 0, number, beginDigit + (endDigit - beginDigit) - remnantChars.length, remnantChars.length);
+
 
             // move indices
-            beginDigit += ((endDigit - beginDigit) - remnantChars.length);
+            if (remnant == 0) {
+                beginDigit += (endDigit - beginDigit);
+                endDigit += digitMaxLength;
+                for (int v = 0; v < (digitMaxLength - 1); v++) {
+                    buffer.append("" + 0);
+                }
+            } else {
+                char[] remnantChars = String.valueOf(remnant).toCharArray();
+                // aligned with number (char array)
+                System.arraycopy(remnantChars, 0, number, beginDigit + (endDigit - beginDigit) - remnantChars.length, remnantChars.length);
+                int move = ((endDigit - beginDigit) - remnantChars.length);
+                beginDigit += move;
+                if (remnantChars.length == digitMaxLength) {
+                    endDigit++;
+                } else {
+                    endDigit += (digitMaxLength - remnantChars.length);
+                }
+                for (int v = 0; v < move; v++) {
+                    buffer.append("" + 0);
+                }
+            }
             // move to one higher significant digit
-            endDigit += 1;
+            //endDigit += 1;
         }
         return remnant;
     }
