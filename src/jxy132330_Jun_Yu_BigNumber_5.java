@@ -1213,11 +1213,7 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
             return temp;
         }
 
-        jxy132330_Jun_Yu_BigNumber_5 result = new jxy132330_Jun_Yu_BigNumber_5();
-        jxy132330_Jun_Yu_BigNumber_5 p = new jxy132330_Jun_Yu_BigNumber_5(this);
-        jxy132330_Jun_Yu_BigNumber_5 q = new jxy132330_Jun_Yu_BigNumber_5(divisor);
-        jxy132330_Jun_Yu_BigNumber_5 temp;// = new jxy132330_Jun_Yu_BigNumber_5("1");
-
+        // then dividend and divisor are both positive
         if (this.compareTo(divisor) < 0) {
             return new jxy132330_Jun_Yu_BigNumber_5();
         }
@@ -1225,6 +1221,11 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
         if (this.equals(divisor)) {
             return new jxy132330_Jun_Yu_BigNumber_5("1");
         }
+
+        jxy132330_Jun_Yu_BigNumber_5 result = new jxy132330_Jun_Yu_BigNumber_5();
+        jxy132330_Jun_Yu_BigNumber_5 p = new jxy132330_Jun_Yu_BigNumber_5(this);
+        jxy132330_Jun_Yu_BigNumber_5 q = new jxy132330_Jun_Yu_BigNumber_5(divisor);
+        jxy132330_Jun_Yu_BigNumber_5 temp;// = new jxy132330_Jun_Yu_BigNumber_5("1");
 
         while (p.compareTo(q) >= 0) {
             int counter = 0;
@@ -1234,23 +1235,62 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
 
             Iterator<Integer> itor1 = p.digitDescendingIterator();
             Iterator<Integer> itor2 = q.digitDescendingIterator();
+            int firstNum = 0, secondNum = 0, delimiter = 1;
             int quo = 1;
-            if (q.getDigitList().size() + (counter - 1) == p.getDigitList().size()) {
-                quo = itor1.next() / itor2.next();
-            } else {
-                quo = (itor1.next() * this.base + itor1.next()) / itor2.next();
 
+            if (q.getDigitList().size() + (counter - 1) == p.getDigitList().size()) {
+                firstNum = itor1.next();
+                delimiter = itor2.next();
+                quo = firstNum / delimiter;
+            } else {
+                firstNum = itor1.next();
+                secondNum = itor1.next();
+                delimiter = itor2.next();
+                quo = (firstNum * this.base + secondNum) / delimiter;
             }
 
             // to simplify the division above, minus 2 from quo
             // because 234 / 156 seems to 2, if applied the equation above, but actually 1
             // 3565 / 143 seems 3, but actually 2, round to 1
-            if (quo <= 2 && quo > 0) {
-                quo = 1;
-            } else if (quo > 2) {
-                quo = quo - 2;
-            }
+
             //quo = p.divide(q.shiftLeft(counter - 1)).numToInt();
+
+            jxy132330_Jun_Yu_BigNumber_5 tent = q.multiply(quo).shiftLeft(counter - 1);
+            while (p.compareTo(tent) < 0) {
+                jxy132330_Jun_Yu_BigNumber_5 diff = tent.subtract(p);
+
+                Iterator<Integer> itor21 = diff.digitDescendingIterator();
+                Iterator<Integer> itor22 = q.digitDescendingIterator();
+                int firstNum2 = 0, secondNum2 = 0, delimiter2 = 1;
+                int quo2 = 1;
+
+                if (q.getDigitList().size() + (counter - 1) == diff.getDigitList().size()) {
+                    firstNum2 = itor21.next();
+                    delimiter2 = itor22.next();
+//                    quo2 = firstNum2 / delimiter2;
+//                    if (firstNum < delimiter) {
+//                        quo2++;
+//                    }
+                    quo2 = Double.valueOf(Math.ceil(((double)(firstNum2)) / ((double)delimiter2))).intValue();
+                } else if (q.getDigitList().size() + (counter - 1) < diff.getDigitList().size()) {
+                    // diff has one more digit than q
+                    firstNum2 = itor21.next();
+                    secondNum2 = itor21.next();
+                    delimiter2 = itor22.next();
+                    //quo2 = (firstNum2 * this.base + secondNum2) / delimiter2;
+                    quo2 = Double.valueOf(Math.ceil(((double)(firstNum2 * this.base + secondNum2)) / ((double)delimiter2))).intValue();
+
+                } else {
+                    // diff has one less digit than q
+                    quo2 = 1;
+                }
+
+                quo = quo - quo2;
+
+                tent = q.multiply(quo).shiftLeft(counter - 1);
+            }
+
+
             temp = new jxy132330_Jun_Yu_BigNumber_5("" + quo);
 
             result = result.add(temp.shiftLeft(counter - 1));
@@ -1259,18 +1299,18 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
 //            jxy132330_Jun_Yu_BigNumber_5 a = q.multiply(quo);
 //            a.printList();
 //            System.out.println(a.numToStr());
-     //            jxy132330_Jun_Yu_BigNumber_5 b = a.shiftLeft(counter - 1);
-     //            b.printList();
-     //            System.out.println(b.numToStr());
-     p = p.subtract(q.multiply(quo).shiftLeft(counter - 1));
-     //            p.printList();
-     //            System.out.println(p.numToStr());
-     }
+            //            jxy132330_Jun_Yu_BigNumber_5 b = a.shiftLeft(counter - 1);
+            //            b.printList();
+            //            System.out.println(b.numToStr());
+            p = p.subtract(tent);
+            //            p.printList();
+            //            System.out.println(p.numToStr());
+        }
 
-     return result;
-     }
+        return result;
+    }
 
-     /**
+    /**
      * Power of big number
      *
      * @param exp exponent
@@ -1332,12 +1372,12 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
             Iterator<Integer> itor = result.digitDescendingIterator();
             int digit = itor.next();
             result = result.shiftLeft(1);
-            result.addDigit((int)Math.sqrt(digit));
+            result.addDigit((int) Math.sqrt(digit));
         } else {
             result = result.shiftRight(getNumDigit() / 2);
             Iterator<Integer> itor = result.digitDescendingIterator();
             int digit = itor.next();
-            result.addDigit((int)Math.sqrt(digit));
+            result.addDigit((int) Math.sqrt(digit));
         }
 
         return result;
@@ -1351,6 +1391,7 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
      */
     public jxy132330_Jun_Yu_BigNumber_5 sqrt() {
         //System.out.println(this.numToStr());
+        //this.printList();
         if (this.isNegative()) {
             throw new ArithmeticException("Negative number can not sqrt");
         }
@@ -1362,9 +1403,12 @@ public class jxy132330_Jun_Yu_BigNumber_5 implements Comparable<jxy132330_Jun_Yu
         do {
             //System.out.println("This size = " + this.numToStr().length());
             //System.out.println(x0.numToStr());
+            //x0.printList();
+
             jxy132330_Jun_Yu_BigNumber_5 temp = this.divide(x0);
 
             //System.out.println(temp.numToStr());
+            //temp.printList();
             temp = temp.add(x0);
             x1 = new jxy132330_Jun_Yu_BigNumber_5();
             temp.divideByInt(2, x1);
